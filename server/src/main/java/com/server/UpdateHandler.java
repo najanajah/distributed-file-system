@@ -1,3 +1,5 @@
+package com.server;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.InetAddress;
@@ -86,7 +88,7 @@ public class UpdateHandler implements RequestHandler {
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
-//Retrieve the records of MonitoringClientInfo for that file
+//Retrieve the records of main.java.com.server.MonitoringClientInfo for that file
 //For each record, if the current time has not exceeded its monitoring expiration time
         //Construct the callback message with newly updated file contents, modifier and other info
         Set<MonitoringClientInfo> clientInfos = this.monitoringInfo.get(filePath);

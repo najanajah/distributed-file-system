@@ -1,3 +1,5 @@
+package com.server;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -10,8 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +28,7 @@ public class Server {
         this.port = port;
         this.semantics = semantics;
         String semantic = (this.semantics == AT_MOST_ONCE?"At_Most_Once":"At_Least_Once");
-        logger.info("Server Semantics: " + semantic);
+        logger.info("main.java.com.server.Server Semantics: " + semantic);
         configureRequestHandler();
     }
 

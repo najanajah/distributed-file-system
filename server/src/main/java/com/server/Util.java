@@ -1,10 +1,11 @@
+package com.server;
+
 import java.io.ByteArrayOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class Util {
     //////////////////////////////////////////////////////////////
 //Construct reply messages for failed operation
     public static String inconsistentReqCodeMsg(String req,int code){
-        return "Internal Server error: the code for "
+        return "Internal main.java.com.server.Server error: the code for "
                 + req + " request shall NOT be " + code + ".";
     }
 

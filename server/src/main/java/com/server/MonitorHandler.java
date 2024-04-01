@@ -1,3 +1,5 @@
+package com.server;
+
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,7 +17,7 @@ public class MonitorHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(MonitorHandler.class.getName());
     /**
      * Key: The file path
-     * Value: a set of MonitoringClientInfo that monitors this file
+     * Value: a set of main.java.com.server.MonitoringClientInfo that monitors this file
      */
     private Map<Path, Set<MonitoringClientInfo>> monitoringInfo =
             new HashMap<>();
@@ -95,7 +97,7 @@ public class MonitorHandler implements RequestHandler {
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
-//Add a 	MonitoringClientInfo record to the monitored file
+//Add a 	main.java.com.server.MonitoringClientInfo record to the monitored file
         long expiration = System.currentTimeMillis() + duration;
         MonitoringClientInfo clientInfo = new MonitoringClientInfo(client, port, expiration);
 

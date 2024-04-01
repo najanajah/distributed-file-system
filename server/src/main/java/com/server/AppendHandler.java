@@ -1,3 +1,5 @@
+package com.server;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,13 +17,13 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class InsertHandler implements RequestHandler {
-    static Logger logger = LogManager.getLogger(InsertHandler.class.getName());
+public class AppendHandler implements RequestHandler {
+    static Logger logger = LogManager.getLogger(AppendHandler.class.getName());
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> request, InetAddress client) {
-//////////////////////////////////////////////////////////////
-//Validate and retrieve parameters
+/////////////////////////////////////////////////////
+        //Validate and retrieve parameters
         logger.entry();
         List<String> missingFields = new LinkedList<String>();
         if(request.get("code") == null){
@@ -30,11 +32,8 @@ public class InsertHandler implements RequestHandler {
         if(request.get("path") == null){
             missingFields.add("path");
         }
-        if(request.get("offset") == null){
-            missingFields.add("offset");
-        }
-        if(request.get("insertion") == null){
-            missingFields.add("insertion");
+        if(request.get("append") == null){
+            missingFields.add("append");
         }
         if(missingFields.size() > 0){
             return Util.errorPacket(Util.missingFieldMsg(missingFields));
@@ -45,13 +44,11 @@ public class InsertHandler implements RequestHandler {
         }
         int code = (Integer)request.get("code");
 
-        if(code != 2){
-            String msg = Util.inconsistentReqCodeMsg("Insert", 2);
+        if(code != 5){
+            String msg = Util.inconsistentReqCodeMsg("Read", 5);
             logger.fatal(msg);
             return Util.errorPacket(msg);
         }
-
-        //Check for path field
 
         if(!(request.get("path") instanceof String)){
             return Util.errorPacket(Util.inconsistentFieldTypeMsg("path", "String"));
@@ -59,23 +56,18 @@ public class InsertHandler implements RequestHandler {
 
         String file = (String)request.get("path");
 
-
-        if(!(request.get("offset") instanceof Integer)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("offset", "Integer"));
+        if(!(request.get("append") instanceof String)){
+            return Util.errorPacket(Util.inconsistentFieldTypeMsg("append", "String"));
         }
-        int offset = (Integer)request.get("offset");
-
-        if(!(request.get("insertion") instanceof String)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("insertion", "String"));
-        }
-
-        String insertedContents = (String)request.get("insertion");
+        String appendedContents = (String)request.get("append");
 
         String content = null;
+
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
-//Perform the insertion
+        //Perform the appending
+
         try{
             Path filePath = Paths.get(file);
             File reqFile = filePath.toFile();
@@ -83,15 +75,8 @@ public class InsertHandler implements RequestHandler {
             content = fileScanner.useDelimiter("\\Z").next();
             fileScanner.close();
 
-
-            if(offset > content.length()){
-                String msg = "Offset " + offset + " exceeds file "
-                        + file + " length (" + content.length() + ").";
-                return Util.errorPacket(msg);
-            }
-
             StringBuffer buffer = new StringBuffer(content);
-            buffer.insert(offset,insertedContents);
+            buffer.append(appendedContents);
 
             BufferedWriter bw = new BufferedWriter(new FileWriter(reqFile));
             bw.write(buffer.toString());
@@ -111,16 +96,16 @@ public class InsertHandler implements RequestHandler {
             return Util.errorPacket(msg);
         }
 
-//////////////////////////////////////////////////////////////
+/////////////////////////////////////////
+        //Construct the reply
 
-//////////////////////////////////////////////////////////////
-//Construct the reply message
         Map<String,Object> reply =
-                Util.successPacket("File " + file + " Insertion Succeeded.");
+                Util.successPacket("File " + file + " Appending Succeeded.");
 
 
         logger.exit();
         return reply;
+
     }
 
 }

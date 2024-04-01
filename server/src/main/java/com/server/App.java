@@ -1,15 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+package main.java.com.server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,22 +7,22 @@ import org.apache.logging.log4j.Logger;
  ```
  java -jar CZ4013Server.jar 8800 1
  ```
- Server will listen to port 8800 and choose AT_MOST_ONCE semantics as default
+ main.java.com.server.Server will listen to port 8800 and choose AT_MOST_ONCE semantics as default
 
  ```
  java -jar CZ4013Server.jar 8800 2
  ```
- Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default
+ main.java.com.server.Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default
 
  ```
  java -jar CZ4013Server.jar 8800 2 5
  ```
- Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. This feature is to simulate lost reply scenario.
+ main.java.com.server.Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. This feature is to simulate lost reply scenario.
 
  ```
  java -jar CZ4013Server.jar 8800 2 5 10
  ```
- Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. And each reply will first delay 10 seconds before transmission. This feature is to simulate incomplete interaction scenario. *
+ main.java.com.server.Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. And each reply will first delay 10 seconds before transmission. This feature is to simulate incomplete interaction scenario. *
  */
 public class App
 {
