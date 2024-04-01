@@ -1,43 +1,38 @@
 package com.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static com.server.InvocationSemantics.AT_LEAST_ONCE;
+import static com.server.InvocationSemantics.AT_MOST_ONCE;
 
 public class Server {
     static Logger logger = LogManager.getLogger(Server.class.getName());
-
-    public static int AT_MOST_ONCE = 1;
-    public static int AT_LEAST_ONCE = 2;
-    private int port = 8888;
-    private int semantics = AT_MOST_ONCE;
+    private final int port;
+    private final int semantics;
 
     public Server(int port, int semantics){
         this.port = port;
         this.semantics = semantics;
-        String semantic = (this.semantics == AT_MOST_ONCE?"At_Most_Once":"At_Least_Once");
+        // default invocation semantics is at-most-once
+        String semantic = (this.semantics == AT_MOST_ONCE.getValue()?"at-most-once":"at-least-once");
         logger.info("main.java.com.server.Server Semantics: " + semantic);
         configureRequestHandler();
     }
 
     public Server(int port){
-        this(port, AT_MOST_ONCE);
+        this(port, AT_MOST_ONCE.getValue());
     }
 
     public Server(){
-        this(8888, AT_MOST_ONCE);
+        this(ServerConfig.PORT, AT_MOST_ONCE.getValue());
     }
     private  RequestHandler modTimeHandler = null;
     private  RequestHandler readHandler = null;
@@ -45,6 +40,7 @@ public class Server {
     private  RequestHandler monitorHandler = null;
     private  RequestHandler renameHandler = null;
     private  RequestHandler appendHandler = null;
+    private RequestHandler duplicateHandler = null;
 
     public void start(){
         logger.entry();
@@ -65,7 +61,7 @@ public class Server {
                 byte[] data = Arrays.copyOf(requestPacket.getData(), requestPacket.getLength());
                 InetAddress clientAddr = requestPacket.getAddress();
                 int  clientPort = requestPacket.getPort();
-                Map<String,Object> request = null;
+                Map<String,Object> request;
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
@@ -81,12 +77,12 @@ public class Server {
                     continue;
                 }
 
-                logger.info("Received Request " + request.toString() + "From " + clientAddr.getHostAddress() + " At Port " + clientPort);
+                logger.info("Received Request " + request + "From " + clientAddr.getHostAddress() + " At Port " + clientPort);
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
                 //Retrieve and validate requests
-                List<String> missingFields = new LinkedList<String>();
+                List<String> missingFields = new LinkedList<>();
                 if(request.get("code") == null){
                     missingFields.add("code");
                 }
@@ -108,7 +104,7 @@ public class Server {
 
 //////////////////////////////////////////////////////////////
                 //Route the request to specific request handlers based on the request code
-                Map<String,Object> reply = null;
+                Map<String,Object> reply;
                 if(code == 0){
                     reply = this.modTimeHandler.handleRequest(request, clientAddr);
                 }else if(code == 1){
@@ -121,7 +117,9 @@ public class Server {
                     reply = this.renameHandler.handleRequest(request, clientAddr);
                 }else if(code == 5){
                     reply = this.appendHandler.handleRequest(request, clientAddr);
-                }else{
+                }else if(code == 6){
+                    reply = this.duplicateHandler.handleRequest(request, clientAddr);
+                } else{
                     String msg = "Unrecognized code " + code;
                     logger.error(msg);
                     reply = Util.errorPacket(msg);
@@ -131,9 +129,6 @@ public class Server {
 //////////////////////////////////////////////////////////////
 
             }//End of while(true)
-        } catch (SocketException e1) {
-            logger.fatal(e1.getMessage());
-            e1.printStackTrace();
         } catch (IOException e1) {
             logger.fatal(e1.getMessage());
             e1.printStackTrace();
@@ -149,30 +144,32 @@ public class Server {
     private  void configureRequestHandler(){
         logger.entry();
         Map<String,Map<String,Object>> cachedReply = new HashMap<>();
-        Map<Path,Set<MonitoringClientInfo>> monitoringInfo = new HashMap<>();
+        Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
 
         RequestHandler modTimeHandler = new ModificationTimeHandler();
         RequestHandler readHandler = new ReadHandler();
         RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
         RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
         RequestHandler renameHandler = new RenameHandler();
-        RequestHandler moniterHandler = new MonitorHandler(monitoringInfo);
+        RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
+        RequestHandler duplicateHandler = new DuplicateHandler();
 
-        if(this.semantics == AT_MOST_ONCE){
+        if(this.semantics == AT_MOST_ONCE.getValue()){
             this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
             this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
-            this.monitorHandler = new AtMostOnceHandler(cachedReply, moniterHandler);
+            this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
             this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
             this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
-        }else if(this.semantics == AT_LEAST_ONCE){
+            this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
+        }else if(this.semantics == AT_LEAST_ONCE.getValue()){
             this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;
             this.insertHandler = insertHandler;
-            this.monitorHandler = moniterHandler;
+            this.monitorHandler = monitorHandler;
             this.renameHandler = renameHandler;
             this.appendHandler = appendHandler;
-
+            this.duplicateHandler = duplicateHandler;
         }else{
             logger.fatal("Unrecognized semantics " + semantics);
         }

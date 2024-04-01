@@ -20,7 +20,7 @@ public class UpdateHandler implements RequestHandler {
 
     static Logger logger = LogManager.getLogger(UpdateHandler.class.getName());
 
-    private Map<Path, Set<MonitoringClientInfo>> monitoringInfo =
+    private Map<Path, Set<RegisteredClient>> monitoringInfo =
             null;
 
 
@@ -28,7 +28,7 @@ public class UpdateHandler implements RequestHandler {
 
 
 
-    public UpdateHandler(Map<Path, Set<MonitoringClientInfo>> monitoringInfo, RequestHandler nextRqHdler) {
+    public UpdateHandler(Map<Path, Set<RegisteredClient>> monitoringInfo, RequestHandler nextRqHdler) {
         super();
         this.monitoringInfo = monitoringInfo;
         this.nextRqHdler = nextRqHdler;
@@ -91,9 +91,9 @@ public class UpdateHandler implements RequestHandler {
 //Retrieve the records of main.java.com.server.MonitoringClientInfo for that file
 //For each record, if the current time has not exceeded its monitoring expiration time
         //Construct the callback message with newly updated file contents, modifier and other info
-        Set<MonitoringClientInfo> clientInfos = this.monitoringInfo.get(filePath);
+        Set<RegisteredClient> clientInfos = this.monitoringInfo.get(filePath);
         if(clientInfos != null){
-            for(MonitoringClientInfo clientInfo: clientInfos){
+            for(RegisteredClient clientInfo: clientInfos){
                 InetAddress clientAddr = clientInfo.getClientAddr();
                 int clientPort = clientInfo.getClientPort();
                 long expiration = clientInfo.getExpiration();

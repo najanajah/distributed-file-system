@@ -9,6 +9,5 @@ import java.util.Map;
  *
  */
 public interface RequestHandler {
-    public Map<String,Object> handleRequest(Map<String,Object> request,
-                                            InetAddress client);
+    Map<String,Object> handleRequest(Map<String,Object> request, InetAddress client);
 }

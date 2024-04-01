@@ -19,15 +19,13 @@ public class MonitorHandler implements RequestHandler {
      * Key: The file path
      * Value: a set of main.java.com.server.MonitoringClientInfo that monitors this file
      */
-    private Map<Path, Set<MonitoringClientInfo>> monitoringInfo =
-            new HashMap<>();
+    private Map<Path, Set<RegisteredClient>> monitoringInfo;
 
 
-    public MonitorHandler(Map<Path, Set<MonitoringClientInfo>> monitoringInfo) {
+    public MonitorHandler(Map<Path, Set<RegisteredClient>> monitoringInfo) {
         super();
         this.monitoringInfo = monitoringInfo;
     }
-
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> request, InetAddress client) {
@@ -99,11 +97,11 @@ public class MonitorHandler implements RequestHandler {
 //////////////////////////////////////////////////////////////
 //Add a 	main.java.com.server.MonitoringClientInfo record to the monitored file
         long expiration = System.currentTimeMillis() + duration;
-        MonitoringClientInfo clientInfo = new MonitoringClientInfo(client, port, expiration);
+        RegisteredClient clientInfo = new RegisteredClient(client, port, expiration);
 
-        Set<MonitoringClientInfo> monitoringClients = this.monitoringInfo.get(monitoredPath);
+        Set<RegisteredClient> monitoringClients = this.monitoringInfo.get(monitoredPath);
         if(monitoringClients == null){
-            monitoringClients = new HashSet<MonitoringClientInfo>();
+            monitoringClients = new HashSet<RegisteredClient>();
         }
         monitoringClients.add(clientInfo);
 
@@ -114,12 +112,10 @@ public class MonitorHandler implements RequestHandler {
 //////////////////////////////////////////////////////////////
 //Construct the reply
         Map<String,Object> reply = new HashMap<>();
-        reply.put("status"	, Integer.valueOf(1));
-        reply.put("end", Long.valueOf(expiration));
+        reply.put("status"	, 1);
+        reply.put("end", expiration);
         reply.put("message", "Monitoring File " + file + " Started.");
         logger.exit();
         return reply;
-
     }
-
 }
