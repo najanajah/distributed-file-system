@@ -112,7 +112,7 @@ public class Util {
     }
 
 
-    public static byte[] marshal (char messageType, int requestId, List<Object> parameters) throws Exception{
+    public static byte[] marshal (char messageType, int requestId, List<Object> parameters) {
         // Initial size
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
@@ -146,7 +146,7 @@ public class Util {
     }
 
 
-    public static List<Object> unmarshal(byte[] data) throws Exception {
+    public static List<Object> unmarshal(byte[] data)  {
         // big-endian default
         ByteBuffer buffer = ByteBuffer.wrap(data);
         List<Object> request = new ArrayList<>();
@@ -166,10 +166,10 @@ public class Util {
         try {
             switch (messageType) {
                 case '1': // read
-                    Collections.addAll(request, readString(buffer), readNumber(buffer), readNumber(buffer));
+                    Collections.addAll(request, readString(buffer), readInt(buffer), readInt(buffer));
                     break;
                 case '2': // insert
-                    Collections.addAll(request, readString(buffer), readNumber(buffer), readString(buffer));
+                    Collections.addAll(request, readString(buffer), readInt(buffer), readString(buffer));
                     break;
                 case '3': // monitor
                     Collections.addAll(request, readString(buffer), readLong(buffer), readInt(buffer));
@@ -206,20 +206,20 @@ public class Util {
             throw new IllegalArgumentException("Insufficient data in buffer for string", e);
         }
     }
-
-    private static Long readNumber(ByteBuffer buffer) {
-        try {
-            byte dataType = buffer.get();
-            if (dataType == 'i') {
-                return Integer.toUnsignedLong(readInt(buffer));
-            } else {
-                return readLong(buffer);
-            }
-        } catch (BufferUnderflowException e) {
-            // This exception is thrown if there aren't enough bytes to read the data type or the number
-            throw new IllegalArgumentException("Insufficient data in buffer", e);
-        }
-    }
+//
+//    private static Long readNumber(ByteBuffer buffer) {
+//        try {
+//            byte dataType = buffer.get();
+//            if (dataType == 'i') {
+//                return Integer.toUnsignedLong(readInt(buffer));
+//            } else {
+//                return readLong(buffer);
+//            }
+//        } catch (BufferUnderflowException e) {
+//            // This exception is thrown if there aren't enough bytes to read the data type or the number
+//            throw new IllegalArgumentException("Insufficient data in buffer", e);
+//        }
+//    }
 
     private static int readInt(ByteBuffer buffer) {
         try {

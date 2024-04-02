@@ -41,6 +41,7 @@ public class Server {
     private  RequestHandler renameHandler = null;
     private  RequestHandler appendHandler = null;
     private RequestHandler duplicateHandler = null;
+    private RequestHandler deleteHandler = null;
 
     public void start(){
         logger.entry();
@@ -114,7 +115,7 @@ public class Server {
                 }else if(requestType == '3'){
                     reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else if(requestType == '4'){
-                    reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                    reply = this.deleteHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else if(requestType == '5'){
                     reply = this.duplicateHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else{
@@ -151,6 +152,7 @@ public class Server {
         RequestHandler renameHandler = new RenameHandler();
         RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
         RequestHandler duplicateHandler = new DuplicateHandler();
+        RequestHandler deleteHandler = new DeleteHandler();
 
         if(this.semantics == AT_MOST_ONCE.getValue()){
             this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
@@ -160,6 +162,7 @@ public class Server {
             this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
             this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
+            this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
             this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;
@@ -168,6 +171,7 @@ public class Server {
             this.renameHandler = renameHandler;
             this.appendHandler = appendHandler;
             this.duplicateHandler = duplicateHandler;
+            this.deleteHandler = deleteHandler;
         }else{
             logger.fatal("Unrecognized semantics " + semantics);
         }
