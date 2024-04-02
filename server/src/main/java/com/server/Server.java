@@ -61,7 +61,7 @@ public class Server {
                 byte[] data = Arrays.copyOf(requestPacket.getData(), requestPacket.getLength());
                 InetAddress clientAddr = requestPacket.getAddress();
                 int  clientPort = requestPacket.getPort();
-                Map<String,Object> request;
+                List<Object> request;
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ public class Server {
                     msg += " Marshalling Failed: " + e.getMessage();
                     logger.error(msg);
 
-                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
+//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
                     continue;
                 }
 
@@ -82,50 +82,48 @@ public class Server {
 
 //////////////////////////////////////////////////////////////
                 //Retrieve and validate requests
-                List<String> missingFields = new LinkedList<>();
-                if(request.get("code") == null){
-                    missingFields.add("code");
-                }
-                if(missingFields.size() > 0){
-                    String msg = Util.missingFieldMsg(missingFields);
-                    logger.error(msg);
-                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
-                    continue;
-                }
-
-                if(!(request.get("code") instanceof Integer)){
-                    String msg = Util.inconsistentFieldTypeMsg("code", "integer");
-                    logger.error(msg);
-                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
-                    continue;
-                }
-                int code = (Integer)request.get("code");
+//                List<String> missingFields = new LinkedList<>();
+//                if(request.get("code") == null){
+//                    missingFields.add("code");
+//                }
+//                if(missingFields.size() > 0){
+//                    String msg = Util.missingFieldMsg(missingFields);
+//                    logger.error(msg);
+//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
+//                    continue;
+//                }
+//
+//                if(!(request.get("code") instanceof Integer)){
+//                    String msg = Util.inconsistentFieldTypeMsg("code", "integer");
+//                    logger.error(msg);
+//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
+//                    continue;
+//                }
+//                int code = (Integer)request.get("code");
+                char requestType = (char) request.get(0);
+                int requestId = (int) request.get(1);
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
                 //Route the request to specific request handlers based on the request code
-                Map<String,Object> reply;
-                if(code == 0){
-                    reply = this.modTimeHandler.handleRequest(request, clientAddr);
-                }else if(code == 1){
-                    reply = this.readHandler.handleRequest(request, clientAddr);
-                }else if(code == 2){
-                    reply = this.insertHandler.handleRequest(request, clientAddr);
-                }else if(code == 3){
-                    reply = this.monitorHandler.handleRequest(request, clientAddr);
-                }else if(code == 4){
-                    reply = this.renameHandler.handleRequest(request, clientAddr);
-                }else if(code == 5){
-                    reply = this.appendHandler.handleRequest(request, clientAddr);
-                }else if(code == 6){
-                    reply = this.duplicateHandler.handleRequest(request, clientAddr);
-                } else{
-                    String msg = "Unrecognized code " + code;
+                List<Object> reply;
+                if(requestType == '1'){
+                    reply = this.readHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                }else if(requestType == '2'){
+                    reply = this.insertHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                }else if(requestType == '3'){
+                    reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                }else if(requestType == '4'){
+                    reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                }else if(requestType == '5'){
+                    reply = this.duplicateHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                }else{
+                    String msg = "Unrecognized code " + requestType;
                     logger.error(msg);
                     reply = Util.errorPacket(msg);
                 }
 
-                Util.sendPacket(clientAddr, clientPort, reply);
+                Util.sendPacket(clientAddr, clientPort, requestType, requestId, reply);
 //////////////////////////////////////////////////////////////
 
             }//End of while(true)

@@ -12,10 +12,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,13 +53,13 @@ class DuplicateHandlerTest {
     @Test
     public void test() throws Exception {
 
-        Map<String,Object> p = new HashMap<String,Object>();
-        p.put("time",System.currentTimeMillis());
-        p.put("code", 6);
-        p.put("sourcePath", sourcePath);
-        p.put("destinationPath", destinationPath);
+        List<Object> p = new ArrayList<>();
+        char requestType = '5';
+        int requestId = 1;
+        p.add(sourcePath);
+        p.add(destinationPath);
 
-        byte[] b = Util.marshal(p);
+        byte[] b = Util.marshal(requestType, requestId, p);
 
         DatagramSocket dgs = new DatagramSocket();
         InetAddress serverAddr = InetAddress.getLocalHost();
@@ -78,10 +75,10 @@ class DuplicateHandlerTest {
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
-        Map<String,Object> response = Util.unmarshal(data);
+        List<Object> response = Util.unmarshal(data);
 
-        assertEquals(1, (int) (Integer) response.get("status"));
-        assertNotNull(response.get("message"));
+        assertEquals(1, (int) (Integer) response.get(0));
+        assertNotNull(response.get(1));
 
         File sourceFile = Paths.get(sourcePath).toFile();
         File destinationFile = Paths.get(destinationPath).toFile();

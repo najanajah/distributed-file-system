@@ -5,39 +5,48 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.InetAddress;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class DuplicateHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(DuplicateHandler.class.getName());
 
     @Override
-    public Map<String, Object> handleRequest(Map<String, Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client) {
         //Validate and retrieve parameters
         logger.entry();
-        List<String> missingFields = new LinkedList<String>();
-        if(request.get("code") == null){
-            missingFields.add("code");
-        }
-        if(request.get("sourcePath") == null){
-            missingFields.add("sourcePath");
-        }
-        if(request.get("destinationPath") == null){
-            missingFields.add("destinationPath");
-        }
-        if(missingFields.size() > 0){
-            return Util.errorPacket(Util.missingFieldMsg(missingFields));
+
+        List<Class<?>> expectedTypes = Arrays.asList(Character.class, Integer.class, String.class, String.class);
+
+        try {
+            ListTypeChecker.check(request, expectedTypes);
+        } catch (ListTypeMismatchException e) {
+            return Util.errorPacket(e.getMessage());
         }
 
-        if(!(request.get("code") instanceof Integer)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("code", "integer"));
-        }
-        int code = (Integer)request.get("code");
+        char requestType = (char) request.get(0);
+        int requestId = (Integer) request.get(1);
+        String sourcePath = (String) request.get(2);
+        String destinationPath = (String) request.get(3);
+
+//        List<String> missingFields = new LinkedList<String>();
+//        if(request.get("code") == null){
+//            missingFields.add("code");
+//        }
+//        if(request.get("sourcePath") == null){
+//            missingFields.add("sourcePath");
+//        }
+//        if(request.get("destinationPath") == null){
+//            missingFields.add("destinationPath");
+//        }
+//        if(missingFields.size() > 0){
+//            return Util.errorPacket(Util.missingFieldMsg(missingFields));
+//        }
+//
+//        if(!(request.get("code") instanceof Integer)){
+//            return Util.errorPacket(Util.inconsistentFieldTypeMsg("code", "integer"));
+//        }
+//        int code = (Integer)request.get("code");
 
 //        if(code != 2){
 //            String msg = Util.inconsistentReqCodeMsg("Insert", 2);
@@ -47,17 +56,17 @@ public class DuplicateHandler implements RequestHandler {
 
         //Check for path field
 
-        if(!(request.get("sourcePath") instanceof String)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("sourcePath", "String"));
-        }
-
-        String sourcePath = (String)request.get("sourcePath");
-
-        if(!(request.get("destinationPath") instanceof String)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("destinationPath", "String"));
-        }
-
-        String destinationPath = (String)request.get("destinationPath");
+//        if(!(request.get("sourcePath") instanceof String)){
+//            return Util.errorPacket(Util.inconsistentFieldTypeMsg("sourcePath", "String"));
+//        }
+//
+//        String sourcePath = (String)request.get("sourcePath");
+//
+//        if(!(request.get("destinationPath") instanceof String)){
+//            return Util.errorPacket(Util.inconsistentFieldTypeMsg("destinationPath", "String"));
+//        }
+//
+//        String destinationPath = (String)request.get("destinationPath");
 
         String content = null;
 
@@ -104,7 +113,7 @@ public class DuplicateHandler implements RequestHandler {
         }
 
         //Construct the reply message
-        Map<String,Object> reply =
+        List<Object> reply =
                 Util.successPacket("File " + sourcePath + " Duplication Succeeded.");
 
         logger.exit();

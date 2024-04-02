@@ -1,17 +1,8 @@
 package com.server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.InetAddress;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,57 +25,64 @@ public class UpdateHandler implements RequestHandler {
         this.nextRqHdler = nextRqHdler;
     }
 
-
-
     @Override
-    public Map<String, Object> handleRequest(Map<String, Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client) {
         logger.entry();
 //////////////////////////////////////////////////////////////
 //Pass the request to next request handlers in the chain
-        Map<String,Object> nextReply = this.nextRqHdler.handleRequest(request, client);
+        List<Object> nextReply = this.nextRqHdler.handleRequest(request, client);
 
-        int code = (Integer)nextReply.get("status");
+        int code = (Integer)nextReply.get(0);
         if(code == 0){
             //If operation fails (Code=0), just return response. No callback message.
             return nextReply;
         }
 
 //////////////////////////////////////////////////////////////
+        List<Class<?>> expectedTypes = Arrays.asList(Character.class, Integer.class, String.class);
+
+        try {
+            ListTypeChecker.check(request, expectedTypes);
+        } catch (ListTypeMismatchException e) {
+            return Util.errorPacket(e.getMessage());
+        }
+
+        char requestType = (char) request.get(0);
+        int requestId = (Integer) request.get(1);
+        String filePath = (String) request.get(2);
+
         //Retrieve and validate parameters
-        List<String> missingFields = new LinkedList<String>();
-        if(request.get("path") == null){
-            missingFields.add("path");
-        }
-        if(missingFields.size() > 0){
-            return Util.errorPacket(Util.missingFieldMsg(missingFields));
-        }
-        if(!(request.get("path") instanceof String)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("path", "String"));
-        }
+//        List<String> missingFields = new LinkedList<String>();
+//        if(request.get("path") == null){
+//            missingFields.add("path");
+//        }
+//        if(missingFields.size() > 0){
+//            return Util.errorPacket(Util.missingFieldMsg(missingFields));
+//        }
+//        if(!(request.get("path") instanceof String)){
+//            return Util.errorPacket(Util.inconsistentFieldTypeMsg("path", "String"));
+//        }
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
 //Retrieve the file's last modification time
-        String file = (String)request.get("path");
         String content = null;
-        long modificationTime;
-        Path filePath = null;
-        try{
-            filePath = Paths.get(file);
-            File reqFile = filePath.toFile();
-            Scanner fileScanner = new Scanner(reqFile);
-            content = fileScanner.useDelimiter("\\Z").next();
-            modificationTime = reqFile.lastModified();
-            fileScanner.close();
-        }catch(InvalidPathException e){
-            String msg = Util.invalidPathMsg(file);
-            logger.error(msg);
-            return Util.errorPacket(msg);
-        }catch (FileNotFoundException e) {
-            String msg = Util.nonExistFileMsg(file);
-            logger.error(msg);
-            return Util.errorPacket(msg);
-        }
+//        long modificationTime;
+//        try{
+//            File reqFile = Paths.get(filePath).toFile();
+//            Scanner fileScanner = new Scanner(reqFile);
+//            content = fileScanner.useDelimiter("\\Z").next();
+//            modificationTime = reqFile.lastModified();
+//            fileScanner.close();
+//        }catch(InvalidPathException e){
+//            String msg = Util.invalidPathMsg(filePath);
+//            logger.error(msg);
+//            return Util.errorPacket(msg);
+//        }catch (FileNotFoundException e) {
+//            String msg = Util.nonExistFileMsg(filePath);
+//            logger.error(msg);
+//            return Util.errorPacket(msg);
+//        }
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
@@ -99,13 +97,14 @@ public class UpdateHandler implements RequestHandler {
                 long expiration = clientInfo.getExpiration();
 
                 if(System.currentTimeMillis() < expiration){
-                    Map<String,Object> callbackMsg = new HashMap<>();
-                    callbackMsg.put("status"	, Integer.valueOf(1));
-                    callbackMsg.put("time", modificationTime);
-                    callbackMsg.put("path", (String)request.get("path"));
-                    callbackMsg.put("modifier", client.getHostAddress());
-                    callbackMsg.put("content", content);
-                    Util.sendPacket(clientAddr, clientPort, callbackMsg);
+                    List<Object> callbackMsg = new ArrayList<>();
+//                    callbackMsg.put("status"	, Integer.valueOf(1));
+//                    callbackMsg.put("time", modificationTime);
+//                    callbackMsg.put("path", filePath);
+//                    callbackMsg.put("modifier", client.getHostAddress());
+//                    callbackMsg.put("content", content);
+                    callbackMsg.add(content);
+                    Util.sendPacket(clientAddr, clientPort, requestType, requestId, callbackMsg);
                 }
             }
         }
