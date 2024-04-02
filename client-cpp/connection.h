@@ -14,8 +14,9 @@
 // #include <sys/socket.h>
 #include <unistd.h>
 #include <ws2tcpip.h>
+#include "cache.h"
 
-class Cache;
+// class Cache;
 
 class Connection {
 private:

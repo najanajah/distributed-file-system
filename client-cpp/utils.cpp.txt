@@ -1,35 +1,5 @@
 #include "utils.h"
 
-std::vector<char> receiveMessage(int check_request_id, Connection* connection) {
-    int total_packets = -1;
-    std::vector<char> all_content;
-    int current_packet = 0;
-    int overall_content_size = -1;
-    while (total_packets == -1 || current_packet != total_packets) {
-        std::vector<char> packet = connection->receive_packet();
-        std::vector<int> header = getHeader(packet);
-        int receive_request_id = header[0];
-        overall_content_size = header[1];
-        int fragment_number = header[2];
-        if (fragment_number != current_packet || receive_request_id > check_request_id) {
-            throw CorruptMessageException();
-        } else if (connection->at_most_once && receive_request_id < check_request_id) {
-            if (Constants::DEBUG) std::cout << "(log) Blindly acknowledging old request id " << receive_request_id << std::endl;
-            std::vector<std::vector<char>> ack = marshall(receive_request_id, Constants::ACKNOWLEDGMENT_ID, std::vector<std::string>());
-            sendMessage(ack, connection);
-            current_packet--;
-            total_packets = -1;
-        }
-        if (total_packets == -1) {
-            total_packets = static_cast<int>(std::ceil(overall_content_size * 1.0 / Constants::MAX_PACKET_CONTENT_SIZE));
-        }
-        add_byte_array(all_content, std::vector<char>(packet.begin() + Constants::PACKET_HEADER_SIZE, packet.end()));
-        current_packet++;
-    }
-    all_content.resize(overall_content_size);
-    if (Constants::DEBUG) std::cout << "(log) Message received" << std::endl;
-    return all_content;
-}
 
 std::map<std::string, std::string> sendAndReceive(int service_id, std::vector<std::string> values, Connection* connection) {
     if (Constants::DEBUG) std::cout << "(log) Begin send/receive for service id " << service_id << ":" << std::endl;
@@ -46,7 +16,7 @@ std::map<std::string, std::string> sendAndReceive(int service_id, std::vector<st
     sendMessage(request, connection);
     while (true) {
         // try {
-            reply_content = receiveMessage(connection->get_request_id(), connection);
+            reply_content = receive_message(connection->get_request_id(), connection);
             // if (reply_content == SOCKET_ERROR){ 
                 if (WSAGetLastError()==WSAETIMEDOUT){ 
                     std::cerr<<"Socket operation timed out ";
@@ -93,7 +63,36 @@ void sendMessage(std::vector<std::vector<char>>& message, Connection* connection
     if (Constants::DEBUG) std::cout << "(log) Message sent" << std::endl;
 }
 
-
+std::vector<char> receive_message(int check_request_id, Connection* connection) {
+    int total_packets = -1;
+    std::vector<char> all_content;
+    int current_packet = 0;
+    int overall_content_size = -1;
+    while (total_packets == -1 || current_packet != total_packets) {
+        std::vector<char> packet = connection->receive_packet();
+        std::vector<int> header = getHeader(packet);
+        int receive_request_id = header[0];
+        overall_content_size = header[1];
+        int fragment_number = header[2];
+        if (fragment_number != current_packet || receive_request_id > check_request_id) {
+            throw CorruptMessageException();
+        } else if (connection->at_most_once && receive_request_id < check_request_id) {
+            if (Constants::DEBUG) std::cout << "(log) Blindly acknowledging old request id " << receive_request_id << std::endl;
+            std::vector<std::vector<char>> ack = marshall(receive_request_id, Constants::ACKNOWLEDGMENT_ID, std::vector<std::string>());
+            sendMessage(ack, connection);
+            current_packet--;
+            total_packets = -1;
+        }
+        if (total_packets == -1) {
+            total_packets = static_cast<int>(std::ceil(overall_content_size * 1.0 / Constants::MAX_PACKET_CONTENT_SIZE));
+        }
+        add_byte_array(all_content, std::vector<char>(packet.begin() + Constants::PACKET_HEADER_SIZE, packet.end()));
+        current_packet++;
+    }
+    all_content.resize(overall_content_size);
+    if (Constants::DEBUG) std::cout << "(log) Message received" << std::endl;
+    return all_content;
+}
 
 std::map<std::string, std::string> un_marshall(int service_id, std::vector<char>& raw_content) {
     int counter = 0;
@@ -195,7 +194,7 @@ std::vector<char> to_primitive(const std::vector<char>& in) {
     return in;
 }
 
-int bytesToInt(const std::vector<char>& bytes) {
+int bytesToInt(const std::vector<char>& bytes, int start_index) {
     // int result = 0;
     // for (int i = 0; i < Constants::INT_SIZE; ++i) {
     //     result |= (bytes[start_index + i] & 0xFF) << (8 * (Constants::INT_SIZE - i - 1));

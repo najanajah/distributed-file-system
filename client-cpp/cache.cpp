@@ -69,7 +69,7 @@ bool Cache::cached(int offset, int byte_count) {
 }
 
 bool Cache::localFresh(int freshness_interval) {
-    long current_time = Utils::getCurrentTimeAsLong();
+    long current_time = getCurrentTimeAsLong();
     bool fresh = current_time - server_checkin_time < freshness_interval;
     if (Constants::DEBUG) {
         std::cout << "(log) Checking freshness locally: it is currently " << current_time
@@ -96,10 +96,10 @@ bool Cache::serverFresh(Connection* conn) {
 }
 
 int Cache::getServerEditTime(Connection* conn) {
-    server_checkin_time = Utils::getCurrentTimeAsLong();
+    server_checkin_time = getCurrentTimeAsLong();
     try {
         std::vector<std::string> request_values = {pathname}; // Assuming pathname is a member variable of Cache class
-        std::map<std::string, std::string> reply = Utils::sendAndReceive(Constants::EDIT_TIME_ID, request_values, conn);
+        std::map<std::string, std::string> reply = sendAndReceive(Constants::EDIT_TIME_ID, request_values, conn);
         return std::stoi(reply["time"]); // Assuming the time value is returned as a string in the reply map
     } catch (const BadPathnameException& nsfe) {
         throw; // Rethrow the exception

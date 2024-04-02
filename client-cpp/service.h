@@ -24,9 +24,9 @@ public:
 
     static Service* generate_service(int service_id, Connection conn);
 
-    std::map<std::string, std::string> sendAndReceive(std::vector<std::string> values) {
-        return Utils::sendAndReceive(service_id, values, &connection);
-    }
+    std::map<std::string, std::string> sendAndReceiveValues(std::vector<std::string> values) {
+        return sendAndReceive(service_id, values, &connection);
+    };
 
     std::vector<std::string> get_user_request_values() {
         std::vector<std::pair<std::string, int>> params = Constants::get_request_params(service_id);

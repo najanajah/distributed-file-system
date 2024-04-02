@@ -6,9 +6,9 @@
 #include <cmath>
 #include "constants.h"
 #include "exceptions.h"
-#include "connection.h"
+// #include "connection.h"
 #include "utils.h"
-
+class Connection;
 class Cache {
 public:
     Cache(const std::string& pn, Connection* conn);

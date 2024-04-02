@@ -1,10 +1,4 @@
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include "utils.h"
-#include "connection.h"
-#include "service.h"
-#include "constants.h"
+#include "client.h"
 
 using namespace std;
 
