@@ -1,6 +1,7 @@
 package com.server;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -9,5 +10,5 @@ import java.util.Map;
  *
  */
 public interface RequestHandler {
-    Map<String,Object> handleRequest(Map<String,Object> request, InetAddress client);
+    Map<String,Object> handleRequest(ArrayList<Object> request, InetAddress client);
 }

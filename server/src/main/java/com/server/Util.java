@@ -1,14 +1,13 @@
 package com.server;
 
-import java.io.ByteArrayOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -19,6 +18,10 @@ public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
     public static int lostReplyCount = 0;
     public static int replyDelaySec = 0;
+    private static final int MESSAGE_TYPE_SIZE = 1;
+    private static final int REQUEST_ID_SIZE = 4;
+
+
 
     /**
      * Construct message response for successful operation
@@ -68,9 +71,9 @@ public class Util {
     /**
      * Send the reply to the ip and port address
      */
-    public static boolean sendPacket(InetAddress address,int port, Map<String,Object>response){
+    public static boolean sendPacket(InetAddress address,int port, char messageType, int requestId, List<Object>response){
         try(DatagramSocket dgs = new DatagramSocket()){
-            byte[] data = Util.marshal(response);
+            byte[] data = marshal(messageType, requestId,response);
             DatagramPacket request =
                     new DatagramPacket(data, data.length, address, port);
 
@@ -106,147 +109,120 @@ public class Util {
         return errorMsg;
     }
 
-    /**
-     * Perform the marshalling
-     * @param parameters the reply to be sent
-     * @return
-     * @throws Exception
-     */
-    public static byte[] marshal (Map<String, Object> parameters) throws Exception{
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
 
-        for(String key:parameters.keySet()){
-            Object value = parameters.get(key);
+    public static byte[] marshal (char messageType, int requestId, List<Object> parameters) throws Exception{
+        // Initial size
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-            outputStream.write('s');//write 's' to represent string
-            outputStream.write(key.getBytes());
-            outputStream.write(0); //write NULL to mark the end of string
-            outputStream.write(':'); //write ':'
+        buffer.put((byte) messageType);
+        buffer.putInt(requestId);
 
-            if(value instanceof String){
-                outputStream.write('s');//write 's' to represent string
-                outputStream.write(((String)value).getBytes());
-                outputStream.write(0); //write NULL to mark the end of string
-            }else if(value instanceof Integer){
-                Integer i = (Integer)value;
-                outputStream.write('i');//write 'i' to represent string
-                outputStream.write(ByteBuffer.allocate(4).putInt(i).array());
-            }else if(value instanceof Long){
-                Long l = (Long)value;
-                outputStream.write('l');//write 'i' to represent string
-                outputStream.write(ByteBuffer.allocate(8).putLong(l).array());
-            }else{
-                throw new Exception("Error. Can not marshal types other than string, integer and long");
+        for (Object arg : parameters) {
+            if (arg instanceof String) {
+                // Write string length followed by string bytes
+                byte[] stringBytes = ((String) arg).getBytes(StandardCharsets.UTF_8);
+                buffer.putInt(stringBytes.length);
+                buffer.put(stringBytes);
+            } else if (arg instanceof Integer) {
+                // Indicate integer type and write the integer
+                buffer.put((byte) 'i');
+                buffer.putInt((Integer) arg);
+            } else if (arg instanceof Long) {
+                buffer.put((byte) 'l');
+                buffer.putLong((Long) arg);
+            } else {
+                // Handle other types or throw an exception
+                throw new IllegalArgumentException("Unsupported argument type: " + arg.getClass());
             }
-
-            outputStream.write(',');
         }
 
-        int parity = 0;
+        buffer.flip();
 
-        //Generate the parity bit so that xor all the bytes equal to 0
-        for(byte b:outputStream.toByteArray()){
-            parity =  parity ^ b;
-        }
-        outputStream.write(parity);
-        return outputStream.toByteArray();
+        byte[] data = new byte[buffer.limit()];
+        buffer.get(data);
+        return data;
     }
 
-    /**
-     * Unmarmal the byte array to key-value mapping pairs
-     * @param data
-     * @return
-     * @throws Exception
-     */
-    public static Map<String,Object> unmarshal(byte[] data) throws Exception{
-        int q = 0;
-        for(byte b:data){
-            q = q ^ b;
+
+    public static List<Object> unmarshal(byte[] data) throws Exception {
+        // big-endian default
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        List<Object> request = new ArrayList<>();
+
+        if (buffer.remaining() < 1 + Integer.BYTES) {
+            throw new IllegalArgumentException("Insufficient data for header");
         }
-        if(q != 0) 	throw new Exception("The data is corrupted.");
 
-        Map<String,Object> result = new HashMap<>();
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream( );
+        // Read the message type from the header and convert to char
+        char messageType = (char) buffer.get();
+        request.add(messageType);
 
-        // Set to true if parsing the key, false if parsing the value
-        boolean isParsingKey = true;
-        String key = null;
-        Object value = null;
+        // Read the request ID from the header
+        int requestId = buffer.getInt();
+        request.add(requestId);
 
-        final int INT = 1;
-        final int LONG = 2;
-        final int STRING = 3;
-
-        int parsingType = 0;
-
-        int i = 0;
-        while (i < data.length - 1){ //Skip the last parity bit
-
-            if(data[i] == 's'){
-                //Parsing the string
-                i++; //skip the 's'
-                parsingType = STRING;
-                while(data[i] != 0){
-                    buffer.write(data[i]);
-                    i++;
-                }
-                i++;  //skip the empty byte
-            }else if(data[i] == 'i'){
-                i++; //skip the 'i'
-                parsingType = INT;
-                for(int c = 0;c < 4;c++){
-                    buffer.write(data[i]);
-                    i++;
-                }
-            }else if(data[i] == 'l'){
-                i++; //skip the 'l'
-                parsingType = LONG;
-
-                for(int c = 0;c < 8;c++){
-                    buffer.write(data[i]);
-                    i++;
-                }
-            }else{
-                throw new Exception("Unrecognized data type during parsing");
+        try {
+            switch (messageType) {
+                case '1':
+                    Collections.addAll(request, readString(buffer), readNumber(buffer), readNumber(buffer));
+                    break;
+                case '2':
+                    Collections.addAll(request, readString(buffer), readNumber(buffer), readString(buffer));
+                    break;
+                case '3':
+                    // Placeholder - to be updated
+                    Collections.addAll(request, "To be updated.");
+                    break;
+                case '4':
+                    Collections.addAll(request, readString(buffer));
+                    break;
+                case '5':
+                    Collections.addAll(request, readString(buffer), readString(buffer));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unrecognized message type: " + messageType);
             }
+        } catch (BufferUnderflowException e) {
+            throw new IllegalArgumentException("Incomplete data for message type " + messageType, e);
+        }
 
-
-            if(isParsingKey){
-                //The bytes in the buffer is for key
-                if(parsingType != STRING)
-                    throw new Exception("The key of request must be of string type.");
-                key = new String(buffer.toByteArray());
-                if(data[i] != ':')
-                    throw new Exception("Expect a ':' after the key");
-                i++; //skip ':'
-                isParsingKey = false;
-
-            }else{
-                //The bytes in the buffer is for value
-                if(parsingType == STRING){
-                    value = new String(buffer.toByteArray());
-                }else if(parsingType == INT){
-                    value = new Integer(	ByteBuffer.wrap(buffer.toByteArray()).getInt());
-
-                }else if(parsingType == LONG){
-                    value = new Long(ByteBuffer.wrap(buffer.toByteArray()).getLong());
-                }else{
-                    throw new Exception("Unrecognized data type");
-                }
-
-                result.put(key, value);
-
-                if(data[i] != ',')
-                    throw new Exception("Expect a ',' after the value");
-                i++; //skip ','
-                isParsingKey = true; //switch to parse the key
-                //value
-
-            }//End of if parsing key
-            buffer.reset();
-        }//End of while
-
-        return result;
+        return request;
     }
 
+
+    private static String readString(ByteBuffer buffer) {
+        try {
+            int filePathLen = buffer.getInt();
+            // Check for negative length or length longer than remaining buffer
+            if (filePathLen < 0 || filePathLen > buffer.remaining()) {
+                throw new IllegalArgumentException("Invalid string length: " + filePathLen);
+            }
+            byte[] filePathBytes = new byte[filePathLen];
+            buffer.get(filePathBytes);
+            return new String(filePathBytes, StandardCharsets.UTF_8);
+        } catch (BufferUnderflowException e) {
+            // This exception is thrown if there aren't enough bytes in the buffer
+            throw new IllegalArgumentException("Insufficient data in buffer for string", e);
+        }
+    }
+
+    private static Long readNumber(ByteBuffer buffer) {
+        try {
+            byte dataType = buffer.get();
+            if (dataType == 'i') {
+                if (buffer.remaining() < Integer.BYTES) {
+                    throw new IllegalArgumentException("Insufficient data in buffer for integer");
+                }
+                return Integer.toUnsignedLong(buffer.getInt());
+            } else {
+                if (buffer.remaining() < Long.BYTES) {
+                    throw new IllegalArgumentException("Insufficient data in buffer for long");
+                }
+                return buffer.getLong();
+            }
+        } catch (BufferUnderflowException e) {
+            // This exception is thrown if there aren't enough bytes to read the data type or the number
+            throw new IllegalArgumentException("Insufficient data in buffer", e);
+        }
+    }
 }
