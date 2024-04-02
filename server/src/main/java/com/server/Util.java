@@ -25,7 +25,7 @@ public class Util {
      */
     public static Map<String,Object> successPacket(String msg){
         Map<String,Object> successPacket = new HashMap<>();
-        successPacket.put("status", Integer.valueOf(1));
+        successPacket.put("status", 1);
         successPacket.put("message", msg);
         return successPacket;
     }
@@ -42,9 +42,9 @@ public class Util {
     }
 
     public static String missingFieldMsg(List<String> fields){
-        StringBuffer sb = new StringBuffer("Missing field ");
+        StringBuilder sb = new StringBuilder("Missing field ");
         for(String f:fields){
-            sb.append(f + ",");
+            sb.append(f).append(",");
         }
         return sb.toString();
     }
@@ -68,7 +68,7 @@ public class Util {
     /**
      * Send the reply to the ip and port address
      */
-    public static boolean sendPacket(InetAddress address,int port, Map<String,Object>response){
+    public static void sendPacket(InetAddress address, int port, Map<String,Object>response){
         try(DatagramSocket dgs = new DatagramSocket()){
             byte[] data = Util.marshal(response);
             DatagramPacket request =
@@ -78,20 +78,17 @@ public class Util {
                 lostReplyCount--;
                 logger.info("(Lost)Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }else{
-                Thread.sleep(replyDelaySec * 1000);
+                Thread.sleep(replyDelaySec * 1000L);
                 dgs.send(request);
                 logger.info("Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }
 
         } catch (SocketException e) {
             logger.error(e.getMessage());
-            return false;
         } catch (Exception e) {
             logger.fatal(e.getMessage());
             e.printStackTrace();
-            return false;
         }
-        return true;
     }
 
     /**
@@ -101,7 +98,7 @@ public class Util {
      */
     public static Map<String,Object> errorPacket(String msg){
         Map<String,Object> errorMsg = new HashMap<>();
-        errorMsg.put("status", Integer.valueOf(0));
+        errorMsg.put("status", 0);
         errorMsg.put("message", msg);
         return errorMsg;
     }
@@ -153,7 +150,7 @@ public class Util {
     }
 
     /**
-     * Unmarmal the byte array to key-value mapping pairs
+     * Unmarshal the byte array to key-value mapping pairs
      * @param data
      * @return
      * @throws Exception
@@ -171,13 +168,13 @@ public class Util {
         // Set to true if parsing the key, false if parsing the value
         boolean isParsingKey = true;
         String key = null;
-        Object value = null;
+        Object value;
 
         final int INT = 1;
         final int LONG = 2;
         final int STRING = 3;
 
-        int parsingType = 0;
+        int parsingType;
 
         int i = 0;
         while (i < data.length - 1){ //Skip the last parity bit
@@ -215,7 +212,7 @@ public class Util {
                 //The bytes in the buffer is for key
                 if(parsingType != STRING)
                     throw new Exception("The key of request must be of string type.");
-                key = new String(buffer.toByteArray());
+                key = buffer.toString();
                 if(data[i] != ':')
                     throw new Exception("Expect a ':' after the key");
                 i++; //skip ':'
@@ -224,14 +221,12 @@ public class Util {
             }else{
                 //The bytes in the buffer is for value
                 if(parsingType == STRING){
-                    value = new String(buffer.toByteArray());
+                    value = buffer.toString();
                 }else if(parsingType == INT){
-                    value = new Integer(	ByteBuffer.wrap(buffer.toByteArray()).getInt());
+                    value = ByteBuffer.wrap(buffer.toByteArray()).getInt();
 
-                }else if(parsingType == LONG){
-                    value = new Long(ByteBuffer.wrap(buffer.toByteArray()).getLong());
-                }else{
-                    throw new Exception("Unrecognized data type");
+                }else {
+                    value = ByteBuffer.wrap(buffer.toByteArray()).getLong();
                 }
 
                 result.put(key, value);
