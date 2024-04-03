@@ -1,8 +1,8 @@
 package com.server.handler;
 
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +10,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.List;
+import java.util.Scanner;
 
 public class DuplicateHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(DuplicateHandler.class.getName());
@@ -34,17 +35,17 @@ public class DuplicateHandler implements RequestHandler {
         String content;
 
         // perform the duplication
-        try{
+        try {
             File sourceFile = Paths.get(sourcePath).toFile();
 
-            if(!sourceFile.exists()){
+            if (!sourceFile.exists()) {
                 String msg = Util.nonExistFileMsg(sourcePath);
                 logger.error(msg);
                 return Util.errorPacket(msg);
             }
 
             File destinationFile = Paths.get(destinationPath).toFile();
-            if(destinationFile.exists()){
+            if (destinationFile.exists()) {
                 String msg = "Renamed file " + destinationFile + " already exists";
                 logger.error(msg);
                 return Util.errorPacket(msg);
@@ -55,12 +56,10 @@ public class DuplicateHandler implements RequestHandler {
             fileScanner.close();
 
 
-            StringBuffer buffer = new StringBuffer(content);
-
             BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFile));
-            bw.write(buffer.toString());
+            bw.write(content);
             bw.close();
-        }catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             String msg = Util.nonExistFileMsg(sourcePath);
             logger.error(msg);
             return Util.errorPacket(msg);

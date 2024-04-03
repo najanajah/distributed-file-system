@@ -1,16 +1,18 @@
 package com.server.handler;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class InsertHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(InsertHandler.class.getName());

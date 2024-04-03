@@ -1,8 +1,8 @@
 package com.server.handler;
 
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 public class DeleteHandler implements RequestHandler {

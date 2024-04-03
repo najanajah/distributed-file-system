@@ -13,13 +13,17 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MonitorHandlerTest {
 
@@ -35,7 +39,7 @@ class MonitorHandlerTest {
     private static final int callBackPort = 8897;
 
     @BeforeAll
-    public static void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException {
         serverThread = new Thread(() -> new Server(port, InvocationSemantics.AT_MOST_ONCE.getValue()).start());
         serverThread.start();
 
@@ -43,7 +47,7 @@ class MonitorHandlerTest {
         //Create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-        if(file.exists()) file.delete();
+        if (file.exists()) file.delete();
         file.createNewFile();
 
         //Write the contents
@@ -76,7 +80,7 @@ class MonitorHandlerTest {
 
         byte[] buffer = new byte[1024];
         DatagramPacket reply =
-                new DatagramPacket(buffer,buffer.length);
+                new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -133,7 +137,7 @@ class MonitorHandlerTest {
 
         buffer = new byte[1024];
         reply =
-                new DatagramPacket(buffer,buffer.length);
+                new DatagramPacket(buffer, buffer.length);
         cbSoc.receive(reply);
         data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -143,15 +147,15 @@ class MonitorHandlerTest {
         assertEquals(insertRequestId, (int) response.get(1));
         assertEquals(1, (int) response.get(2));
 
-        String content = (String)response.get(3);
+        String content = (String) response.get(3);
         assertEquals(insertedContent, content);
         cbSoc.close();
     }
 
     @AfterAll
-    public static void tearDown(){
+    public static void tearDown() {
         serverThread.interrupt();
-		file.delete();
+        file.delete();
     }
 
 }

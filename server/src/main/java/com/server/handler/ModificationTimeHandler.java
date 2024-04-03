@@ -1,18 +1,19 @@
 package com.server.handler;
 
+import com.server.constant.Constant;
+import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
+import com.server.helper.Util;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-
-import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
-import com.server.exception.ListTypeMismatchException;
-import com.server.helper.Util;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModificationTimeHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(ModificationTimeHandler.class.getName());
@@ -34,16 +35,16 @@ public class ModificationTimeHandler implements RequestHandler {
         // get last modification time
         long modificationTime = 0L;
 
-        try{
+        try {
             Path filePath = Paths.get(file);
             File reqFile = filePath.toFile();
-            if(!reqFile.exists()){
+            if (!reqFile.exists()) {
                 String msg = Util.nonExistFileMsg(file);
                 logger.error(msg);
                 return Util.errorPacket(msg);
             }
             modificationTime = reqFile.lastModified();
-        }catch(InvalidPathException e){
+        } catch (InvalidPathException e) {
             String msg = Util.invalidPathMsg(file);
             logger.error(msg);
             return Util.errorPacket(msg);

@@ -20,17 +20,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ModificationTimeHandlerTest {
     private static Thread serverThread = null;
     private static File file = null;
-    private static String filePath = "test/get_modification_time.txt";
-    private static int port = 8888;
+    private static final String filePath = "test/get_modification_time.txt";
+    private static final int port = 8888;
     static String contents = "Test Getting Modification Time";
 
     @BeforeAll
-    public static void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException {
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
 
@@ -39,7 +39,7 @@ class ModificationTimeHandlerTest {
         // create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-        if(file.exists()) file.delete();
+        if (file.exists()) file.delete();
         file.createNewFile();
 
         // write the contents
@@ -67,7 +67,7 @@ class ModificationTimeHandlerTest {
         System.out.println("Send to server: " + p);
 
         byte[] buffer = new byte[1024];
-        DatagramPacket reply = new DatagramPacket(buffer,buffer.length);
+        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -80,7 +80,7 @@ class ModificationTimeHandlerTest {
     }
 
     @AfterAll
-    public static void tearDown(){
+    public static void tearDown() {
         serverThread.interrupt();
         file.delete();
     }

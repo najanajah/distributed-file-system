@@ -13,4 +13,5 @@ public enum InvocationSemantics {
     public int getValue() {
         return value;
     }
+
 }

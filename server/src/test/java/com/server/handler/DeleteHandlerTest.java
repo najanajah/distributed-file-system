@@ -30,7 +30,7 @@ class DeleteHandlerTest {
     private static final String contents = "Test Deleting";
 
     @BeforeAll
-    public static void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException {
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
 
@@ -38,7 +38,7 @@ class DeleteHandlerTest {
         //Create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-        if(file.exists()) file.delete();
+        if (file.exists()) file.delete();
         file.createNewFile();
 
         //Write the contents
@@ -67,7 +67,7 @@ class DeleteHandlerTest {
 
         byte[] buffer = new byte[1024];
         DatagramPacket reply =
-                new DatagramPacket(buffer,buffer.length);
+                new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -83,7 +83,7 @@ class DeleteHandlerTest {
     }
 
     @AfterAll
-    public static void tearDown(){
+    public static void tearDown() {
         serverThread.interrupt();
         file.delete();
     }

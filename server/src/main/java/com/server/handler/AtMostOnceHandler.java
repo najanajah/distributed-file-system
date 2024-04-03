@@ -1,21 +1,20 @@
 package com.server.handler;
 
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Map;
+
 public class AtMostOnceHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(AtMostOnceHandler.class.getName());
-    private Map<String, List<Object>> responseCache;
-    private RequestHandler nextRqHdler;
+    private final Map<String, List<Object>> responseCache;
+    private final RequestHandler nextRqHdler;
 
     public AtMostOnceHandler(Map<String, List<Object>> responseCache, RequestHandler nextRqHdler) {
         super();
@@ -40,7 +39,7 @@ public class AtMostOnceHandler implements RequestHandler {
         String key = client.getHostName() + "." + requestId;
         List<Object> preReply = this.responseCache.get(key);
 
-        if(preReply != null) {
+        if (preReply != null) {
             // return the cached reply if found
             logger.info("Find the cached reply " + preReply + " for " + key);
             return preReply;

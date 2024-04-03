@@ -16,7 +16,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,7 +35,7 @@ class DuplicateHandlerTest {
     private static final String contents = "Test File Duplication";
 
     @BeforeAll
-    public static void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException {
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
 
@@ -43,7 +46,7 @@ class DuplicateHandlerTest {
 
         if (!sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
 
-        if(sourceFile.exists()) sourceFile.delete();
+        if (sourceFile.exists()) sourceFile.delete();
         sourceFile.createNewFile();
 
         // write the contents
@@ -76,7 +79,7 @@ class DuplicateHandlerTest {
 
         byte[] buffer = new byte[1024];
         DatagramPacket reply =
-                new DatagramPacket(buffer,buffer.length);
+                new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -100,7 +103,7 @@ class DuplicateHandlerTest {
     }
 
     @AfterAll
-    public static void tearDown(){
+    public static void tearDown() {
         serverThread.interrupt();
         destinationFile.delete();
         sourceFile.delete();

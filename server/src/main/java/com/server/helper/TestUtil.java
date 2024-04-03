@@ -7,7 +7,7 @@ import java.util.List;
 import static com.server.helper.Util.readString;
 
 public class TestUtil {
-    public static List<Object> unmarshalReply(byte[] data)  {
+    public static List<Object> unmarshalReply(byte[] data) {
         // big-endian default
         ByteBuffer buffer = ByteBuffer.wrap(data);
         List<Object> request = new ArrayList<>();

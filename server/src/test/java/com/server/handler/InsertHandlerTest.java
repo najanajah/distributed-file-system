@@ -30,12 +30,12 @@ public class InsertHandlerTest {
     private static final String filePath = "test/insert.txt";
     private static final int port = 8603;
     static String contents = "Test Inserting";
-    private Integer offset = 0;
-    private String insertedContent = "Stop ";
+    private final Integer offset = 0;
+    private final String insertedContent = "Stop ";
 
 
     @BeforeAll
-    public static void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException {
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
         Thread.sleep(2000);
@@ -43,7 +43,7 @@ public class InsertHandlerTest {
         // create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-        if(file.exists()) file.delete();
+        if (file.exists()) file.delete();
         file.createNewFile();
 
         // write the contents
@@ -73,7 +73,7 @@ public class InsertHandlerTest {
 
         byte[] buffer = new byte[1024];
         DatagramPacket reply =
-                new DatagramPacket(buffer,buffer.length);
+                new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -93,7 +93,7 @@ public class InsertHandlerTest {
     }
 
     @AfterAll
-    public static void tearDown(){
+    public static void tearDown() {
         serverThread.interrupt();
         file.delete();
     }

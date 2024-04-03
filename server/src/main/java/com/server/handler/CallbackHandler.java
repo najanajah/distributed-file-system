@@ -1,23 +1,25 @@
 package com.server.handler;
 
-import java.net.InetAddress;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import com.server.model.RegisteredClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.InetAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class CallbackHandler implements RequestHandler {
 
     static Logger logger = LogManager.getLogger(CallbackHandler.class.getName());
-    private Map<Path, Set<RegisteredClient>> monitoringInfo;
-    private RequestHandler nextRqHdler;
+    private final Map<Path, Set<RegisteredClient>> monitoringInfo;
+    private final RequestHandler nextRqHdler;
 
     public CallbackHandler(Map<Path, Set<RegisteredClient>> monitoringInfo, RequestHandler nextRqHdler) {
         super();
@@ -33,7 +35,7 @@ public class CallbackHandler implements RequestHandler {
         List<Object> nextReply = this.nextRqHdler.handleRequest(request, client);
 
         int code = (int) nextReply.get(0);
-        if(code == 0){
+        if (code == 0) {
             // if operation fails (Code=0), just return response. No callback message.
             return nextReply;
         }
@@ -52,8 +54,8 @@ public class CallbackHandler implements RequestHandler {
         // for each registered client, check if still valid
         // then, construct the callback message with newly updated file contents
         Set<RegisteredClient> registeredClients = this.monitoringInfo.get(Paths.get(filePath));
-        if(registeredClients != null){
-            for(RegisteredClient clientInfo: registeredClients){
+        if (registeredClients != null) {
+            for (RegisteredClient clientInfo : registeredClients) {
                 InetAddress clientAddr = clientInfo.getClientAddr();
                 int clientPort = clientInfo.getClientPort();
                 long expiration = clientInfo.getExpiration();
@@ -61,7 +63,7 @@ public class CallbackHandler implements RequestHandler {
                 System.out.println(System.currentTimeMillis() < expiration);
                 System.out.println(System.currentTimeMillis());
 
-                if(System.currentTimeMillis() < expiration){
+                if (System.currentTimeMillis() < expiration) {
                     Util.sendPacket(clientAddr, clientPort, requestType, requestId, nextReply);
                 }
             }

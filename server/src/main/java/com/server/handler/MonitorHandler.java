@@ -1,21 +1,21 @@
 package com.server.handler;
 
-import java.net.InetAddress;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
 import com.server.constant.Constant;
-import com.server.helper.ListTypeChecker;
 import com.server.exception.ListTypeMismatchException;
+import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
 import com.server.model.RegisteredClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.InetAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
 public class MonitorHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(MonitorHandler.class.getName());
-    private Map<Path, Set<RegisteredClient>> monitoringInfo;
+    private final Map<Path, Set<RegisteredClient>> monitoringInfo;
 
 
     public MonitorHandler(Map<Path, Set<RegisteredClient>> monitoringInfo) {
@@ -41,7 +41,7 @@ public class MonitorHandler implements RequestHandler {
 
         Path monitoredPath = Paths.get(filePath);
 
-        if(!monitoredPath.toFile().exists()){
+        if (!monitoredPath.toFile().exists()) {
             String msg = Util.nonExistFileMsg(filePath);
             logger.error(msg);
             return Util.errorPacket(msg);
@@ -52,7 +52,7 @@ public class MonitorHandler implements RequestHandler {
         RegisteredClient clientInfo = new RegisteredClient(client, port, expiration);
 
         Set<RegisteredClient> registeredClients = this.monitoringInfo.get(monitoredPath);
-        if(registeredClients == null){
+        if (registeredClients == null) {
             registeredClients = new HashSet<>();
         }
         registeredClients.add(clientInfo);

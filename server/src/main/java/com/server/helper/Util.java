@@ -1,5 +1,10 @@
 package com.server.helper;
 
+import com.server.constant.Constant;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.xml.bind.DatatypeConverter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -7,13 +12,9 @@ import java.net.SocketException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import javax.xml.bind.DatatypeConverter;
-
-import com.server.constant.Constant;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
@@ -21,14 +22,14 @@ public class Util {
     public static int replyDelaySec = 0;
 
     // construct message response for successful operation
-    public static List<Object> successPacket(String msg){
+    public static List<Object> successPacket(String msg) {
         List<Object> successPacket = new ArrayList<>();
         successPacket.add(1);
         successPacket.add(msg);
         return successPacket;
     }
 
-    public static String failUnMarshalMsg(byte[] data){
+    public static String failUnMarshalMsg(byte[] data) {
         return "Fail to Unmarshal 0x" + DatatypeConverter.printHexBinary(data);
     }
 
@@ -41,15 +42,15 @@ public class Util {
     }
 
     // send the reply to the ip and port address
-    public static void sendPacket(InetAddress address, int port, char messageType, int requestId, List<Object> response){
-        try(DatagramSocket dgs = new DatagramSocket()){
+    public static void sendPacket(InetAddress address, int port, char messageType, int requestId, List<Object> response) {
+        try (DatagramSocket dgs = new DatagramSocket()) {
             byte[] data = marshal(messageType, requestId, response);
             DatagramPacket reply = new DatagramPacket(data, data.length, address, port);
 
-            if(lostReplyCount > 0){
+            if (lostReplyCount > 0) {
                 lostReplyCount--;
                 logger.info("(Lost) Reply to " + address.toString() + " at port " + port + " contents: " + response);
-            }else{
+            } else {
                 Thread.sleep(replyDelaySec * 1000L);
                 dgs.send(reply);
                 logger.info("Reply to " + address.toString() + " at port " + port + " contents: " + response);
@@ -63,14 +64,14 @@ public class Util {
     }
 
     // construct the reply for failed operations with messages
-    public static List<Object> errorPacket(String msg){
+    public static List<Object> errorPacket(String msg) {
         List<Object> errorMsg = new ArrayList<>();
         errorMsg.add(0);
         errorMsg.add(msg);
         return errorMsg;
     }
 
-    public static byte[] marshal (char messageType, int requestId, List<Object> parameters) {
+    public static byte[] marshal(char messageType, int requestId, List<Object> parameters) {
         // initial size
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
@@ -101,7 +102,7 @@ public class Util {
         return data;
     }
 
-    public static List<Object> unmarshal(byte[] data)  {
+    public static List<Object> unmarshal(byte[] data) {
         // big-endian default
         ByteBuffer buffer = ByteBuffer.wrap(data);
         List<Object> request = new ArrayList<>();
