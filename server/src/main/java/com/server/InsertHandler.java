@@ -87,7 +87,7 @@ public class InsertHandler implements RequestHandler {
 
 //////////////////////////////////////////////////////////////
         //Perform the insertion
-        Path filepath = Paths.get(path);
+        String updatedContentAsString = null;
         try (RandomAccessFile file = new RandomAccessFile(path, "rw")) {
             // Check if the offset is within the file length
             long fileLength = file.length();
@@ -107,6 +107,12 @@ public class InsertHandler implements RequestHandler {
             file.seek(offset);
             file.write(bytesToInsert);
             file.write(buffer);
+
+            byte[] updatedContent = new byte[(int) file.length()];
+            file.seek(0);
+            file.readFully(updatedContent);
+            // Convert the byte array back to a String
+            updatedContentAsString = new String(updatedContent, StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
             String msg = Util.nonExistFileMsg(path);
             logger.error(msg);
@@ -122,7 +128,7 @@ public class InsertHandler implements RequestHandler {
 //////////////////////////////////////////////////////////////
 //Construct the reply message
         List<Object> reply =
-                Util.successPacket("File " + path + " Insertion Succeeded.");
+                Util.successPacket(updatedContentAsString);
         logger.trace("Exiting InsertHandler");
         return reply;
     }
