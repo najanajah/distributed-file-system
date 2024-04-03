@@ -3,14 +3,13 @@ package Services;
 import java.io.IOException;
 import java.util.Map;
 
-import Exceptions.ApplicationException;
-import Exceptions.BadPathnameException;
-import Exceptions.BadRangeException;
-// import Helpers.CacheObject;
-import Helpers.Constants;
-import Helpers.Connection;
+import Driver.Connection;
+import Driver.Constants;
+import Exceptions.AppException;
+import Exceptions.BadPathException;
+import Exceptions.IllegalRangeException;
 
-public class Remove extends Service {
+public class Remove extends ServiceABC {
 
     public Remove(Connection r) {
         super(r);
@@ -33,13 +32,13 @@ public class Remove extends Service {
             System.out.println(reply.get("content"));
             System.out.println("Done.");
         }
-        catch(BadPathnameException bpe) {
+        catch(BadPathException bpe) {
             System.out.println("Error: " + bpe.getMessage() + ".");
         }
-        catch(BadRangeException bre){ 
+        catch(IllegalRangeException bre){ 
             System.out.println("Error: " + bre.getMessage() + ".");
         }
-        catch(ApplicationException a){ 
+        catch(AppException a){ 
             System.out.println("Error: " + a.getMessage() + ".");
         }
 

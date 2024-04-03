@@ -1,25 +1,26 @@
 package Services;
 
-import Exceptions.ApplicationException;
-import Helpers.Constants;
-import Helpers.Connection;
-import Helpers.Util;
+import Exceptions.AppException;
 import javafx.util.Pair;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import Driver.Connection;
+import Driver.Constants;
+import Driver.Util;
+
 /**
  * Abstract class for services that this application can perform for the client
  * Sub-classes: Read, Write, Monitor, Clear, Trim
  */
-public abstract class Service {
+public abstract class ServiceABC {
 
     public Connection connection;
     public int service_id;
 
-    public Service(Connection r) {
+    public ServiceABC(Connection r) {
         connection = r;
     }
 
@@ -35,7 +36,7 @@ public abstract class Service {
             send_and_receive(request_values);
             System.out.println("Done.");
         }
-        catch(ApplicationException ae) {
+        catch(AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");
         }
     }
@@ -45,7 +46,7 @@ public abstract class Service {
      * @param r connection info
      * @return the requested Service
      */
-    public static Service generate_service(int service_id, Connection r) {
+    public static ServiceABC generate_service(int service_id, Connection r) {
         if (service_id == Constants.READ_ID) {
             return new Read(r);
         }
@@ -55,24 +56,24 @@ public abstract class Service {
         else if (service_id == Constants.MONITOR_ID) {
             return new Monitor(r);
         }
-        else if (service_id == Constants.CLEAR_ID) {
-            return new Clear(r);
-        }
-        else if (service_id == Constants.TRIM_ID) {
-            return new Trim(r);
-        }
-        else if (service_id == Constants.EDIT_TIME_ID) {
-            return new EditTime(r);
-        }
-        else if (service_id == Constants.CREATE_FILE_ID) {
-            return new Create(r);
+        else if (service_id == Constants.DUPLICATE_FILE_ID) {
+            return new Duplicate(r);
         }
         else if (service_id == Constants.REMOVE_FILE_ID) {
             return new Remove(r);
         }
-        else if (service_id == Constants.LIST_ID) {
-            return new ListDir(r);
+        else if (service_id == Constants.EDIT_TIME_ID) {
+            return new EditTime(r);
         }
+        // else if (service_id == Constants.CREATE_FILE_ID) {
+        //     return new Create(r);
+        // }
+        // else if (service_id == Constants.REMOVE_FILE_ID) {
+        //     return new Remove(r);
+        // }
+        // else if (service_id == Constants.LIST_ID) {
+        //     return new ListDir(r);
+        // }
         else {
             return null;
         }
@@ -82,9 +83,9 @@ public abstract class Service {
      * @param values parameter values for the service
      * @return the reply from the server, as a Map
      * @throws IOException send/receive message
-     * @throws ApplicationException BadPathnameException, BadRangeException, FileEmptyException
+     * @throws AppException BadPathnameException, BadRangeException, FileEmptyException
      */
-    public Map<String, Object> send_and_receive(String[] values) throws IOException, ApplicationException {
+    public Map<String, Object> send_and_receive(String[] values) throws IOException, AppException {
         System.out.println(service_id);
         return Util.send_and_receive(service_id, values, connection);
     }

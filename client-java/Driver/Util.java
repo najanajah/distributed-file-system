@@ -1,8 +1,9 @@
-package Helpers;
+package Driver;
 
-import Exceptions.ApplicationException;
+import Exceptions.AppException;
 import Exceptions.CorruptMessageException;
 import javafx.util.Pair;
+import Driver.Constants;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -22,12 +23,12 @@ public class Util {
      * @param connection server connection info
      * @return the reply from the server, in a Map
      * @throws IOException from sending/receiving packet
-     * @throws ApplicationException BadPathnameException, BadRangeException, FilEmptyException
+     * @throws AppException BadPathnameException, BadRangeException, FilEmptyException
      */
-    public static Map<String, Object> send_and_receive(int service_id, String[] values, Connection connection) throws IOException, ApplicationException {
+    public static Map<String, Object> send_and_receive(int service_id, String[] values, Connection connection) throws IOException, AppException {
         if (Constants.DEBUG) System.out.println("(log) Begin send/receive for service id " + service_id + "and req id " + connection.get_request_id());
         connection.socket.setSoTimeout(Constants.TIMEOUT);
-        List<Byte> reply_content;
+        byte[] reply_content;
         List<List<Byte>> request = Util.marshall(connection.get_request_id(), service_id, values);
         Util.send_message(request, connection);
         while(true) {
@@ -49,12 +50,12 @@ public class Util {
             return reply;
         }
         finally {
-            if (connection.at_most_once) {
-                // upon receiving, send acknowledgment
-                System.out.print("(acknowledgment) ");
-                List<List<Byte>> ack = Util.marshall(connection.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
-                Util.send_message(ack, connection);
-            }
+            // if (connection.at_most_once) {
+            //     // upon receiving, send acknowledgment
+            //     System.out.print("(acknowledgment) ");
+            //     List<List<Byte>> ack = Util.marshall(connection.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
+            //     Util.send_message(ack, connection);
+            // }
             if (Constants.DEBUG) System.out.println("(log) Finished send/receive for service id " + service_id + ".");
             connection.increment_request_id();
         }
@@ -92,45 +93,59 @@ public class Util {
      * @return the content portion of the message
      * @throws IOException from socket receive
      */
+    // public static List<Byte> receiveMessageMonitor(int request_id, Connection connection) throws IOException, CorruptMessageException {
+    //     List<Byte> all_content = new ArrayList<>();
 
-    public static List<Byte> receive_message(int request_id, Connection connection) throws IOException, CorruptMessageException {
+    //     System.out.println("Trying to receive packet"); 
+    //     byte[] packet = connection.receive_packet();
+    //     ByteBuffer buffer = ByteBuffer.wrap(packet);
+    //     // get char message_id
+    //     buffer.get();
+    //     buffer.getInt();
 
-        // int total_packets = -1;
-        List<Byte> all_content = new ArrayList<>();
-        // int current_packet = 0;
-        // int overall_content_size = 0;
-        // while (total_packets == -1 || current_packet != total_packets) {
-            System.out.println("Trying to receive packet"); 
-            byte[] packet = connection.receive_packet();
-            System.out.println("getting header"); 
-            int[] header = get_header(packet);
-            int receive_request_id = header[1];
-            // overall_content_size = header[1];
-            // int fragment_number = header[2];
-            // if (fragment_number != current_packet || receive_request_id > check_request_id) {
-            //     throw new CorruptMessageException();
-            // }
-            // (hacky) blindly acknowledge old replies
-            if (connection.at_most_once && receive_request_id < request_id) {
-            // if (connection.at_most_once){  
-                // send acknowledgment
-                if (Constants.DEBUG) System.out.println("(log) Blindly acknowledging old request id " + request_id);
-                List<List<Byte>> ack = Util.marshall(0, Constants.ACKNOWLEDGMENT_ID, new String[0]);
-                Util.send_message(ack, connection);
-                // current_packet--;
-                // total_packets = -1;
-            }
-            // if (total_packets == -1) {
-            //     total_packets = (int) Math.ceil(overall_content_size*1.0/Constants.MAX_PACKET_CONTENT_SIZE);
-            // }
-            add_byte_array(all_content, Arrays.copyOfRange(packet, Constants.PACKET_HEADER_SIZE, packet.length));
-            // current_packet++;
+    //     while (buffer.hasRemaining()) {
+    //             all_content.add(buffer.get());
+    //     }
+    //     // if (Constants.DEBUG) System.out.println("(log) Message received");
+    //     return packet;
+    // }
+    public static byte[] receive_message(int request_id, Connection connection) throws IOException, CorruptMessageException {
+
+        // List<Byte> all_content = new ArrayList<>();
+    
+        System.out.println("Trying to receive packet"); 
+        byte[] packet = connection.receive_packet();
+        // ByteBuffer buffer = ByteBuffer.wrap(packet);
+        // get char message_id
+        // buffer.get();
+        // buffer.getInt();
+
+        // while (buffer.hasRemaining()) {
+        //     all_content.add(buffer.get());
+        // }
+        // System.out.println("getting header"); 
+        // Object[] header = get_header(packet);
+        // int receive_request_id = (int) header[1];
+        // if (connection.at_most_once && receive_request_id < request_id) {
+        //     // if (connection.at_most_once){  
+        //         // send acknowledgment
+        //         if (Constants.DEBUG) System.out.println("(log) Blindly acknowledging old request id " + request_id);
+                // List<List<Byte>> ack = Util.marshall(0, Constants.ACKNOWLEDGMENT_ID, new String[0]);
+                // Util.send_message(ack, connection);
+        //         // current_packet--;
+        //         // total_packets = -1;
+        // }
+        //     // if (total_packets == -1) {
+        //     //     total_packets = (int) Math.ceil(overall_content_size*1.0/Constants.MAX_PACKET_CONTENT_SIZE);
+        //     // }
+        //     add_byte_array(all_content, Arrays.copyOfRange(packet, Constants.PACKET_HEADER_SIZE, packet.length));
+        //     // current_packet++;
 
         // }
         // hopefully all the content is just passed as a byte array 
         // all_content = all_content.subList(0, overall_content_size);
-        if (Constants.DEBUG) System.out.println("(log) Message received");
-        return all_content;
+        // if (Constants.DEBUG) System.out.println("(log) Message received");
+        return packet;
     }
 
     /** Unmarshall the message received from server
@@ -141,44 +156,78 @@ public class Util {
      * @param service_id the service we expected to be performed
      * @param raw_content message from server
      * @return the message, as a map
-     * @throws ApplicationException BadPathnameException, BadRangeException, FilEmptyException
+     * @throws AppException BadPathnameException, BadRangeException, FilEmptyException
      */
-    public static Map<String, Object> un_marshall(int service_id, List<Byte> raw_content) throws ApplicationException {
-        
-        int counter = 0;
-        Map<String, Object> message = new HashMap<>();
+    public static Map<String, Object> un_marshall(int service_id, byte[] raw_content) throws AppException {
+    
+        //  byte[] packet = Util.to_primitive(raw_content);
+         ByteBuffer buffer = ByteBuffer.wrap(raw_content);
+         Map<String, Object> message = new HashMap<>();
 
-        // Header 
-        int message_type = raw_content.get(counter++); //CHAR_SIZE = 1 
-        int request_id = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
-        counter += Constants.INT_SIZE;
+         if (buffer.remaining() < 1 + Integer.BYTES) {
+             throw new IllegalArgumentException("Insufficient data for header");
+         }
+ 
+         // read the message type from the header and convert to char
+         char messageType = (char) buffer.get();
+         message.put("message_type", messageType);
+ 
+         // read the request ID from the header
+        int requestId = buffer.getInt();
+        message.put("request_id", requestId);
+ 
+         // read the reply status
+        int status = buffer.getInt();
+        message.put("status_code", status);
+ 
+         // read the reply status
+        try {
+            int filePathLen = buffer.getInt();
+            message.put("data_length" , filePathLen); 
+            // Check for negative length or length longer than remaining buffer
+            if (filePathLen < 0 || filePathLen > buffer.remaining()) {
+                throw new IllegalArgumentException("Invalid string length: " + filePathLen);
+            }
+            byte[] filePathBytes = new byte[filePathLen];
+            buffer.get(filePathBytes);
+            String content = new String(filePathBytes, StandardCharsets.UTF_8);
+            String key = (status==Constants.SUCCESSFUL_STATUS_ID)?"content" :"error_message"; 
+            message.put(key, content);
+         
+        }catch (BufferUnderflowException e) {
+            // This exception is thrown if there aren't enough bytes in the buffer
+            throw new IllegalArgumentException("Not enough space in buffer for string", e);
+        }
+        // message.put("data_length", content);
+        // // int counter = 0;
+        // Map<String, Object> message = new HashMap<>();
 
-        message.put("message_type", message_type);
-        message.put("request_id", request_id);
+        // // Header 
+        // int message_type = raw_content.get(counter++); //CHAR_SIZE = 1 
+        // int request_id = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
+        // counter += Constants.INT_SIZE;
+
+        // message.put("message_type", message_type);
+        // message.put("request_id", request_id);
 
         // Not needed - payload length 
         // int payload_len = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
         // counter += Constants.INT_SIZE;
 
-        int status_code = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
-        counter += Constants.INT_SIZE;
-        message.put("status_code", status_code);
+        // int status_code = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
+        // counter += Constants.INT_SIZE;
+        // message.put("status_code", status_code);
 
-        // Extracting data_length
-        int data_length = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
-        counter += Constants.INT_SIZE;
-        message.put("data_length", data_length);
+        // // Extracting data_length
+        // int data_length = bytes_to_int(raw_content.subList(counter, counter + Constants.INT_SIZE));
+        // counter += Constants.INT_SIZE;
+        // message.put("data_length", data_length);
 
-        // Extracting content
-        List<Byte> contentBytes = raw_content.subList(counter, counter + data_length);
-        counter+= data_length;
-        String contentString = new String(to_primitive(contentBytes), StandardCharsets.UTF_8);
+        // // Extracting content
+        // List<Byte> contentBytes = raw_content.subList(counter, counter + data_length);
+        // counter+= data_length;
+        // String contentString = new String(to_primitive(contentBytes), StandardCharsets.UTF_8);
 
-
-        if (status_code==Constants.SUCCESSFUL_STATUS_ID) 
-            message.put("content", contentString);
-        else 
-            message.put("error_message", contentString);
 
         return message;
 
@@ -246,13 +295,34 @@ public class Util {
         return ret;
     }
 
+    public static String readString(ByteBuffer buffer) {
+        try {
+            int filePathLen = buffer.getInt();
+            // Check for negative length or length longer than remaining buffer
+            if (filePathLen < 0 || filePathLen > buffer.remaining()) {
+                throw new IllegalArgumentException("Invalid string length: " + filePathLen);
+            }
+            byte[] filePathBytes = new byte[filePathLen];
+            buffer.get(filePathBytes);
+            return new String(filePathBytes, StandardCharsets.UTF_8);
+        } catch (BufferUnderflowException e) {
+            // This exception is thrown if there aren't enough bytes in the buffer
+            throw new IllegalArgumentException("Not enough buffer space" + " for string", e);
+        }
+    }
 
-    private static int[] get_header(byte[] packet) {
-        int[] header = new int[3];
+
+    private static Object[] get_header(byte[] packet) {
+        Object[] header = new Object[Constants.PACKET_HEADER_SIZE];
+        ByteBuffer buffer = ByteBuffer.wrap(packet);
+        char service_id = (char) buffer.get();
+        header[0] = service_id;
+        int requestId = buffer.getInt();
+        header[1] = requestId; 
         // message / service Id
-        header[0] = bytes_to_int(Arrays.copyOfRange(packet, 0, 1));
+        // header[0] = bytes_to_int(Arrays.copyOfRange(packet, 0, 1));
         // request_id 
-        header[1] = bytes_to_int(Arrays.copyOfRange(packet, 1, 5));
+        // header[1] = bytes_to_int(Arrays.copyOfRange(packet, 1, 5));
         // header[2] = bytes_to_int(Arrays.copyOfRange(packet, 8, 12));
         return header;
     }
@@ -295,7 +365,12 @@ public class Util {
                 int parsed = Integer.parseInt(values[i]); 
                 System.out.println("Parsed integer " + parsed);
                 buffer.putInt(parsed);
-            } else {
+            } else if (param_type == Constants.LONG_ID) { 
+                long parsed = Long.parseLong(values[i]); 
+                System.out.println("Parsed Long " + parsed);
+                buffer.putLong(parsed);
+            }
+            else {
                 // Handle other types or throw an exception
                 throw new IllegalArgumentException("Unsupported argument type: " );
             }
@@ -326,7 +401,9 @@ public class Util {
             case 5:
                 return '5'; // remove 
             case 6:
-                return '6'; // get last edit time 
+                return '6'; // get last edit time
+            case 7:
+                return '7'; // ack
             default:
                 throw new IllegalArgumentException("Invalid service id: " + sid);
         } 
@@ -401,12 +478,12 @@ public class Util {
     //     return add_byte_array(in, bytes);
     // }
 
-    private static List<Byte> add_byte_array(List<Byte> in, byte[] add) {
-        for (byte b : add) {
-            in.add(b);
-        }
-        return in;
-    }
+    // private static List<Byte> add_byte_array(List<Byte> in, byte[] add) {
+    //     for (byte b : add) {
+    //         in.add(b);
+    //     }
+    //     return in;
+    // }
 
     // FOR DEBUGGING PURPOSES ONLY
     // private static List<List<Byte>> marshall_reply(int request_id, int service_id, String[] values) {

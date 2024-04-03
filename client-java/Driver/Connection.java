@@ -1,10 +1,11 @@
-package Helpers;
+package Driver;
 
 import Exceptions.CorruptMessageException;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -51,11 +52,12 @@ public class Connection {
         // Testing connection 
         List<Byte> packet = new ArrayList<>();
         packet.add((byte) 0);
-        try {send_packet(packet);
-        System.out.println("connection suc");}
-        catch( IOException e){ 
-            System.out.println("Error while testing connection e");
-        }
+        // try {send_packet(packet);
+        // // System.out.println("connection success");
+        // }
+        // catch( IOException e){ 
+        //     System.out.println("Error while testing connection e");
+        // }
     }
 
     /**Send one packet to the server
@@ -82,9 +84,13 @@ public class Connection {
      */
     public byte[] receive_packet() throws IOException {
         byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
+        
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+        System.out.println("trying to receive packet");
         socket.receive(reply);
-        return reply.getData();
+        System.out.println("packet received");
+        byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
+        return data;
     }
 
     /** acknowledge any lingering old replies (if we are using at most once semantics)

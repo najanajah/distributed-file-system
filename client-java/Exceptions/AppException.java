@@ -1,22 +1,22 @@
 package Exceptions;
-import Helpers.Constants;
+import Driver.Constants;
 
-public class ApplicationException extends Exception {
-    public ApplicationException (String m) {
+public class AppException extends Exception {
+    public AppException (String m) {
         super(m);
     }
-    public static void check_app_exception(int alert_id) throws ApplicationException {
+    public static void check_app_exception(int alert_id) throws AppException {
         if (alert_id == Constants.NO_SUCH_FILE_ID) {
-            throw new BadPathnameException();
+            throw new BadPathException();
         }
         if (alert_id == Constants.BAD_RANGE_ID) {
-            throw new BadRangeException();
+            throw new IllegalRangeException();
         }
         if (alert_id == Constants.FILE_EMPTY_ID) {
-            throw new FileEmptyException();
+            throw new EmptyFileException();
         }
         if (alert_id == Constants.FILE_ALREADY_EXISTS_ID) {
-            throw new FileAlreadyExistsException();
+            throw new FileExistsException();
         }
         if (alert_id == Constants.NOT_A_DIRECTORY_ID) {
             throw new NotADirectoryException();

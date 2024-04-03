@@ -1,15 +1,16 @@
 package Services;
 
-import Exceptions.ApplicationException;
-import Exceptions.BadPathnameException;
-import Helpers.CacheEntry;
-import Helpers.Constants;
-import Helpers.Connection;
+import Exceptions.AppException;
+import Exceptions.BadPathException;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class Read extends  Service {
+import Driver.CacheEntry;
+import Driver.Connection;
+import Driver.Constants;
+
+public class Read extends  ServiceABC {
 
     public Read(Connection r) {
         super(r);
@@ -35,10 +36,12 @@ public class Read extends  Service {
             }
 
             CacheEntry cache_object = connection.cache.get(pathname);
-            // only read from the server if we must
 
+            // only read from the server if we must
             if (cache_object.must_read_server(offset, byte_count, connection)) {
                 Map<String, Object> reply = send_and_receive(request_values);
+                System.out.println(reply.keySet());
+                System.out.println(reply.values());
                 cache_object.set_cache(offset, byte_count, (String) reply.get("content"));
             }
 
@@ -48,13 +51,13 @@ public class Read extends  Service {
             System.out.println(content);
             System.out.println("Done.");
         }
-        catch(BadPathnameException bpe) {
+        catch(BadPathException bpe) {
             if (connection.cache.containsKey(pathname)) {
                 connection.cache.remove(pathname);
             }
             System.out.println("Error: " + bpe.getMessage() + ".");
         }
-        catch(ApplicationException ae) {
+        catch(AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");
         }
 

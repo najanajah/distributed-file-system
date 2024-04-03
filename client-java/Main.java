@@ -1,11 +1,12 @@
-import Helpers.Constants;
-import Helpers.Connection;
-import Services.Service;
+import Services.ServiceABC;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Scanner;
+
+import Driver.Connection;
+import Driver.Constants;
 
 public class Main {
 
@@ -22,10 +23,10 @@ public class Main {
                 break;
             }
             catch(ArrayIndexOutOfBoundsException e) {
-                System.out.println("Bad parameters command line args. Please type: ");
-                System.out.println("{ip address} {port number} " +
+                System.out.println("Commandline arguments are incorrect please provide the following : ");
+                System.out.println("{IP Address} {Port Number} " +
                         "{1 for at most once, 0 for at least once} " +
-                        "{network failure rate} {freshness interval in milliseconds}");
+                        "{Network Failure Rate} {Freshness Interval(ms)}");
                 initial_input = scanner.nextLine().split(" ");
                 System.out.println("");
             }
@@ -39,7 +40,7 @@ public class Main {
             if (input == Constants.EXIT_ID) {
                 break;
             }
-            Service requested_service = Service.generate_service(input, connection);
+            ServiceABC requested_service = ServiceABC.generate_service(input, connection);
             if (!(requested_service==null)) {
                 requested_service.act();
             }

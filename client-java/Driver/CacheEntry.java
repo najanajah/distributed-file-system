@@ -1,9 +1,9 @@
-package Helpers;
+package Driver;
 
-import Exceptions.ApplicationException;
-import Exceptions.BadRangeException;
-import Exceptions.BadPathnameException;
-
+import Exceptions.AppException;
+import Exceptions.IllegalRangeException;
+import Exceptions.BadPathException;
+import java.lang.NullPointerException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +18,7 @@ public class CacheEntry {
     // the last time we checked in with the server
     private long server_checkin_time;
     // the last time the file was edited at the server that we are aware of
-    private int last_known_edit_time;
+    private long last_known_edit_time;
 
     private HashMap<Integer, String> content;
     private int final_block;
@@ -27,9 +27,9 @@ public class CacheEntry {
      * @param pn pathname
      * @param connection connection info
      * @throws IOException sending/receiving message
-     * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
+     * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
-    public CacheEntry(String pn, Connection connection) throws IOException, BadPathnameException {
+    public CacheEntry(String pn, Connection connection) throws IOException, BadPathException {
         pathname = pn;
         // also sets server_checkin_time
         last_known_edit_time = get_server_edit_time(connection);
@@ -41,9 +41,9 @@ public class CacheEntry {
      * @param offset file offset
      * @param byte_count number of bytes to read
      * @return requested string from cache
-     * @throws BadRangeException see check_range method (bottom)
+     * @throws IllegalRangeException see check_range method (bottom)
      */
-    public String get_cache(int offset, int byte_count) throws BadRangeException {
+    public String get_cache(int offset, int byte_count) throws IllegalRangeException {
         check_range(offset, byte_count);
         int start_block = get_start_block(offset);
         int end_block = get_end_block(offset, byte_count);
@@ -66,15 +66,23 @@ public class CacheEntry {
      * @param offset file offset
      * @param byte_count number of bytes read
      * @param new_content read content returned by the server (in blocks)
-     * @throws BadRangeException see check_range method (bottom)
+     * @throws IllegalRangeException see check_range method (bottom)
      */
-    public void set_cache(int offset, int byte_count, String new_content) throws BadRangeException {
+    public void set_cache(int offset, int byte_count, String new_content) throws IllegalRangeException, BadPathException {
+        if(new_content==null){ 
+            throw new BadPathException();
+        }
         check_range(offset, byte_count);
         int start_block = get_start_block(offset);
         int end_block = get_end_block(offset, byte_count);
         for (int i = start_block; i < end_block; i++) {
+            int startIndex = i*Constants.FILE_BLOCK_SIZE;
+            int endIndex = (i+1)*Constants.FILE_BLOCK_SIZE;
+            // if (endIndex > new_content.length()) {
+            //     endIndex = new_content.length(); // Adjust endIndex to avoid out of bounds
+            // }
             content.put(i,
-                    new_content.substring(i*Constants.FILE_BLOCK_SIZE, (i+1)*Constants.FILE_BLOCK_SIZE));
+                    new_content.substring(startIndex, endIndex));
         }
         String last_piece = new_content.substring(end_block*Constants.FILE_BLOCK_SIZE);
         if (last_piece.length() != Constants.FILE_BLOCK_SIZE) {
@@ -93,10 +101,10 @@ public class CacheEntry {
      * @param connection connection info
      * @return whether or not one must read the server
      * @throws IOException send/receive message
-     * @throws BadPathnameException if requesting edit time at server yields bad pathname
-     * @throws BadRangeException if the given offset/byte_count combo is certain to be out of range
+     * @throws BadPathException if requesting edit time at server yields bad pathname
+     * @throws IllegalRangeException if the given offset/byte_count combo is certain to be out of range
      */
-    public boolean must_read_server(int offset, int byte_count, Connection connection) throws IOException, BadPathnameException, BadRangeException {
+    public boolean must_read_server(int offset, int byte_count, Connection connection) throws IOException, BadPathException, IllegalRangeException {
         boolean must = !cached(offset, byte_count) || (!local_fresh(connection.freshness_interval) && !server_fresh(connection));
         if (Constants.DEBUG) {
             if (must) {
@@ -113,9 +121,9 @@ public class CacheEntry {
      * @param offset file offset
      * @param byte_count number of bytes to read
      * @return whether it exists in the cache
-     * @throws BadRangeException if the given offset/byte_count combo is certain to be out of range
+     * @throws IllegalRangeException if the given offset/byte_count combo is certain to be out of range
      */
-    private boolean cached(int offset, int byte_count) throws BadRangeException {
+    private boolean cached(int offset, int byte_count) throws IllegalRangeException {
         check_range(offset, byte_count);
         int start_block = get_start_block(offset);
         int end_block = get_end_block(offset, byte_count);
@@ -153,10 +161,10 @@ public class CacheEntry {
      * @param connection connection info
      * @return match?
      * @throws IOException send/receive messages
-     * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
+     * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
-    private boolean server_fresh(Connection connection) throws IOException, BadPathnameException {
-        int last_edit_time = get_server_edit_time(connection);
+    private boolean server_fresh(Connection connection) throws IOException, BadPathException {
+        long last_edit_time = get_server_edit_time(connection);
         if (Constants.DEBUG) System.out.println("(log) Checking server: our last known edit time is " + last_known_edit_time +
                 " and the server's last edit time is " + last_edit_time);
         if (last_known_edit_time == last_edit_time) {
@@ -177,24 +185,32 @@ public class CacheEntry {
      * @param connection connection info
      * @return the time
      * @throws IOException send/receive messages
-     * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
+     * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
-    private int get_server_edit_time(Connection connection) throws IOException, BadPathnameException {
+    private long get_server_edit_time(Connection connection) throws IOException, BadPathException, NullPointerException {
         server_checkin_time = System.currentTimeMillis();
 
         String[] request_values = {pathname};
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
+            System.out.println(reply.keySet());
+            System.out.println(reply.values());
+            String contentString = (String) reply.get("content");
+            long time = Long.parseLong(contentString);
             // changed from time to -> content generalise across replies 
-            return (int) reply.get("content");
+            return time ;
         }
-        catch (BadPathnameException nsfe) {
-            throw new BadPathnameException();
+        catch (BadPathException nsfe) {
+            throw new BadPathException();
         }
-        // this should never happen
-        catch (ApplicationException ae) {
+        catch (AppException ae) {
             System.out.println("unexpected error: " + ae.getMessage());
             return -1;
+        }
+        catch (NullPointerException n){
+            // System.out.println("unexpected error: " + n.getMessage());
+            // return ;
+            throw new NullPointerException();
         }
     }
 
@@ -212,9 +228,9 @@ public class CacheEntry {
     /** Check if the given offset/byte_count combo is certain to be out of range
      * @param offset file offset
      * @param byte_count number of bytes to read
-     * @throws BadRangeException if the combo is indeed out of range
+     * @throws IllegalRangeException if the combo is indeed out of range
      */
-    private void check_range(int offset, int byte_count) throws BadRangeException {
+    private void check_range(int offset, int byte_count) throws IllegalRangeException {
         int end_block = get_end_block(offset, byte_count);
         if (offset < 0 ||
             byte_count < 0 ||
@@ -222,7 +238,7 @@ public class CacheEntry {
                 (offset+byte_count) % Constants.FILE_BLOCK_SIZE > content.get(end_block).length()) ||
             (final_block != -1 && end_block > final_block))
         {
-            throw new BadRangeException();
+            throw new IllegalRangeException();
         }
     }
 }

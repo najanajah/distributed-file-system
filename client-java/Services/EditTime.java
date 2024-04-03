@@ -1,13 +1,14 @@
 package Services;
 
-import Exceptions.ApplicationException;
-import Helpers.Constants;
-import Helpers.Connection;
+import Exceptions.AppException;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class EditTime extends Service {
+import Driver.Connection;
+import Driver.Constants;
+
+public class EditTime extends ServiceABC {
 
     public EditTime(Connection r) {
         super(r);
@@ -27,7 +28,7 @@ public class EditTime extends Service {
             System.out.println((int) reply.get("time"));
             System.out.println("Done.");
         }
-        catch(ApplicationException ae) {
+        catch(AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");
         }
     }

@@ -1,6 +1,6 @@
 package Exceptions;
 
-public class NotADirectoryException extends ApplicationException {
+public class NotADirectoryException extends AppException {
     public NotADirectoryException()  {
         super("Not a directory");
     }

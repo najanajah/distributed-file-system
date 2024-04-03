@@ -1,4 +1,4 @@
-package Helpers;
+package Driver;
 
 import javafx.util.Pair;
 
@@ -9,7 +9,7 @@ public class Constants {
 
     // Basic sizes
     public static final int INT_SIZE = 4;
-    public static final int MAX_PACKET_SIZE = 256;
+    public static final int MAX_PACKET_SIZE = 1024;
     public static final int PACKET_HEADER_SIZE = 5;
     public static final int MAX_PACKET_CONTENT_SIZE = MAX_PACKET_SIZE - PACKET_HEADER_SIZE;
     public static final int FILE_BLOCK_SIZE = 100;
@@ -17,25 +17,26 @@ public class Constants {
     // Basic ID's
     public static final int INT_ID = 0;
     public static final int STRING_ID = 1;
-    public static final int EXIT_ID = 0;
+    public static final int LONG_ID = 2;
 
     // Basic settings
     public static final int TIMEOUT = 5000;
     public static final boolean DEBUG = true;
 
     // Services
+    public static final int EXIT_ID = 0;
     public static final String SERVICE_PROMPT =
-            "Please enter: 0 for exit, 1 for read, 2 for write, 3 for monitor, 4 for clear, 5 for trim, 6 for edit time, 8 for create file, 9 for remove file, 10 for list";
+            "Please enter: \n 0 : exit\n 1 : read\n 2 : write\n 3 : monitor\n 4 : duplicate\n 5 : remove file\n 6 : edit time";
     public static final int READ_ID = 1;
     public static final int WRITE_ID = 2;
     public static final int MONITOR_ID = 3;
     public static final int DUPLICATE_FILE_ID = 4; 
     public static final int REMOVE_FILE_ID = 5;
-    public static final int CLEAR_ID = -1;
-    public static final int TRIM_ID = -2;
+//     public static final int CLEAR_ID = -1;
+//     public static final int TRIM_ID = -2;
     public static final int EDIT_TIME_ID = 6;
     public static final int ACKNOWLEDGMENT_ID = 7;
-    public static final int CREATE_FILE_ID = 8;
+//     public static final int CREATE_FILE_ID = 8;
     
     public static final int LIST_ID = 10;
 
@@ -45,9 +46,9 @@ public class Constants {
     public static final List<Pair<String, Integer>> WRITE_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID), new Pair<>("offset", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> MONITOR_REQUEST_PARAMS =
-            List.of(new Pair<>("pathname", STRING_ID), new Pair<>("monitor_time", INT_ID));
-    public static final List<Pair<String, Integer>> CLEAR_REQUEST_PARAMS =
-            List.of(new Pair<>("pathname", STRING_ID)); 
+            List.of(new Pair<>("pathname", STRING_ID), new Pair<>("monitor_time", LONG_ID));
+//     public static final List<Pair<String, Integer>> CLEAR_REQUEST_PARAMS =
+//             List.of(new Pair<>("pathname", STRING_ID)); 
     public static final List<Pair<String, Integer>> DUPLICATE_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID), new Pair<>("destination" , STRING_ID));
 
@@ -55,17 +56,17 @@ public class Constants {
             List.of(new Pair<>("pathname", STRING_ID));
 
         //  remove
-    public static final List<Pair<String, Integer>> TRIM_REQUEST_PARAMS =
-            List.of(new Pair<>("pathname", STRING_ID));
+//     public static final List<Pair<String, Integer>> TRIM_REQUEST_PARAMS =
+//             List.of(new Pair<>("pathname", STRING_ID));
     public static final List<Pair<String, Integer>> EDIT_TIME_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID));
     public static final List<Pair<String, Integer>> ACKNOWLEDGE_PARAMS =
             List.of();
-    public static final List<Pair<String, Integer>> CREATE_FILE_REQUEST_PARAMS =
-            List.of(new Pair<>("pathname", STRING_ID));
+//     public static final List<Pair<String, Integer>> CREATE_FILE_REQUEST_PARAMS =
+//             List.of(new Pair<>("pathname", STRING_ID));
     
-    public static final List<Pair<String, Integer>> LIST_REQUEST_PARAMS =
-            List.of(new Pair<>("pathname", STRING_ID));
+//     public static final List<Pair<String, Integer>> LIST_REQUEST_PARAMS =
+//             List.of(new Pair<>("pathname", STRING_ID));
 
     public static final Map<Integer, List<Pair<String, Integer>>> REQUEST_PARAMS;
     static{
@@ -75,12 +76,12 @@ public class Constants {
                 MONITOR_ID, MONITOR_REQUEST_PARAMS,
                 DUPLICATE_FILE_ID, DUPLICATE_REQUEST_PARAMS,
                 REMOVE_FILE_ID, REMOVE_FILE_REQUEST_PARAMS,
-                CLEAR_ID, CLEAR_REQUEST_PARAMS,
-                TRIM_ID, TRIM_REQUEST_PARAMS,
+                // CLEAR_ID, CLEAR_REQUEST_PARAMS,
+                // TRIM_ID, TRIM_REQUEST_PARAMS,
                 EDIT_TIME_ID, EDIT_TIME_REQUEST_PARAMS,
-                ACKNOWLEDGMENT_ID, ACKNOWLEDGE_PARAMS,
+                ACKNOWLEDGMENT_ID, ACKNOWLEDGE_PARAMS
                 // CREATE_FILE_ID, CREATE_FILE_REQUEST_PARAMS,
-                LIST_ID, LIST_REQUEST_PARAMS
+                // LIST_ID, LIST_REQUEST_PARAMS
         );
     }
 
@@ -88,25 +89,25 @@ public class Constants {
     //  Need to change?
     public static final int SUCCESSFUL_STATUS_ID = 1;
     public static final List<Pair<String, Integer>> READ_REPLY_PARAMS =
-            List.of(new Pair<>("content", STRING_ID));
+            List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> WRITE_REPLY_PARAMS =
-            List.of(new Pair<>("content", STRING_ID));
+            List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> MONITOR_REPLY_PARAMS =
-            List.of(new Pair<>("content", STRING_ID));
+            List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> DUPLICATE_REPLY_PARAMS =
-            List.of(new Pair<>("content", STRING_ID));        
-    public static final List<Pair<String, Integer>> CLEAR_REPLY_PARAMS =
-            List.of();
-    public static final List<Pair<String, Integer>> TRIM_REPLY_PARAMS =
-            List.of();
+            List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));        
+//     public static final List<Pair<String, Integer>> CLEAR_REPLY_PARAMS =
+//             List.of();
+//     public static final List<Pair<String, Integer>> TRIM_REPLY_PARAMS =
+        //     List.of();
     public static final List<Pair<String, Integer>> EDIT_TIME_REPLY_PARAMS =
-            List.of(new Pair<>("time", INT_ID));
-    public static final List<Pair<String, Integer>> CREATE_REPLY_PARAMS =
-            List.of();
+            List.of(new Pair<>("status", INT_ID), new Pair<>("time", INT_ID));
+//     public static final List<Pair<String, Integer>> CREATE_REPLY_PARAMS =
+//             List.of();
     public static final List<Pair<String, Integer>> REMOVE_REPLY_PARAMS =
-            List.of();
-    public static final List<Pair<String, Integer>> LIST_REPLY_PARAMS =
-            List.of(new Pair<>("repeat", INT_ID), new Pair<>("type", INT_ID), new Pair<>("name", STRING_ID));
+           List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
+//     public static final List<Pair<String, Integer>> LIST_REPLY_PARAMS =
+//             List.of(new Pair<>("repeat", INT_ID), new Pair<>("type", INT_ID), new Pair<>("name", STRING_ID));
 
     public static final Map<Integer, List<Pair<String, Integer>>> SUCCESSFUL_STATUS_PARAMS;
     static{
@@ -114,13 +115,13 @@ public class Constants {
                 READ_ID, READ_REPLY_PARAMS,
                 WRITE_ID, WRITE_REPLY_PARAMS,
                 MONITOR_ID, MONITOR_REPLY_PARAMS,
-                CLEAR_ID, CLEAR_REPLY_PARAMS,
+                // CLEAR_ID, CLEAR_REPLY_PARAMS,
                 DUPLICATE_FILE_ID, DUPLICATE_REPLY_PARAMS,
-                TRIM_ID, TRIM_REPLY_PARAMS,
+                // TRIM_ID, TRIM_REPLY_PARAMS,
                 EDIT_TIME_ID, EDIT_TIME_REPLY_PARAMS,
                 // CREATE_FILE_ID, CREATE_REPLY_PARAMS,
-                REMOVE_FILE_ID, REMOVE_REPLY_PARAMS,
-                LIST_ID, LIST_REPLY_PARAMS
+                REMOVE_FILE_ID, REMOVE_REPLY_PARAMS
+                // LIST_ID, LIST_REPLY_PARAMS
         );
     }
 

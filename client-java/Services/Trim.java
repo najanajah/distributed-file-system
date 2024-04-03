@@ -1,13 +1,13 @@
-package Services;
+// package Services;
 
-import Helpers.Constants;
-import Helpers.Connection;
+// import Driver.Connection;
+// import Driver.Constants;
 
-public class Trim extends Service {
+// public class Trim extends ServiceABC {
 
-    public Trim(Connection r) {
-        super(r);
-        service_id = Constants.TRIM_ID;
-    }
+//     public Trim(Connection r) {
+//         super(r);
+//         service_id = Constants.TRIM_ID;
+//     }
 
-}
+// }

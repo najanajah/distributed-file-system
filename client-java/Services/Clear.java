@@ -1,13 +1,13 @@
-package Services;
+// package Services;
 
-import Helpers.Constants;
-import Helpers.Connection;
+// import Driver.Connection;
+// import Driver.Constants;
 
-public class Clear extends Service {
+// public class Clear extends ServiceABC {
 
-    public Clear(Connection r) {
-        super(r);
-        service_id = Constants.CLEAR_ID;
-    }
+//     public Clear(Connection r) {
+//         super(r);
+//         service_id = Constants.CLEAR_ID;
+//     }
 
-}
+// }

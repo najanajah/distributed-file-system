@@ -3,14 +3,15 @@ package Services;
 import java.io.IOException;
 import java.util.Map;
 
-import Exceptions.ApplicationException;
-import Exceptions.BadPathnameException;
-import Exceptions.BadRangeException;
-import Helpers.CacheEntry;
-import Helpers.Constants;
-import Helpers.Connection;
+import Driver.CacheEntry;
+import Driver.Connection;
+import Driver.Constants;
+import Driver.Util;
+import Exceptions.AppException;
+import Exceptions.BadPathException;
+import Exceptions.IllegalRangeException;
 
-public class Write extends Service {
+public class Write extends ServiceABC {
 
     public Write(Connection r) {
         super(r);
@@ -35,12 +36,13 @@ public class Write extends Service {
             CacheEntry cache_object = connection.cache.get(pathname);
             // Get freshness 
             // Gets from server if cache is not fresh 
-            if (cache_object.must_read_server(offset, Integer.MAX_VALUE, connection)) {
-                String byte_count = Integer.toString(Integer.MAX_VALUE);
-                String[] read_request = {pathname, "0" , byte_count};
-                Map<String, Object> reply = send_and_receive(read_request);
+            if (cache_object.must_read_server(offset, Constants.FILE_BLOCK_SIZE, connection)) {
+                // String byte_count = Integer.toString(Constants.FILE_BLOCK_SIZE);
+                // String[] read_request = {pathname, "0" , byte_count};
+                Map<String, Object> reply = send_and_receive(request_values);
                 // updates the cache with new file 
-                cache_object.set_cache(offset, Integer.MAX_VALUE, (String) reply.get("content"));
+                String value = (String) reply.get("content");
+                cache_object.set_cache(offset, value.length(), value );
             }
 
             // gets updated file 
@@ -54,13 +56,13 @@ public class Write extends Service {
             
             System.out.println("Content inserted for file " + pathname + "successfully at offset " + offset);
         } 
-        catch(BadPathnameException bpe) {
+        catch(BadPathException bpe) {
             System.out.println("Error: " + bpe.getMessage() + ".");
         }
-        catch(BadRangeException bre){ 
+        catch(IllegalRangeException bre){ 
             System.out.println("Error: " + bre.getMessage() + ".");
         }
-        catch(ApplicationException a){ 
+        catch(AppException a){ 
             System.out.println("Error: " + a.getMessage() + ".");
         }
         

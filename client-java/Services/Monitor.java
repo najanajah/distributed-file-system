@@ -1,17 +1,18 @@
 package Services;
 
-import Exceptions.ApplicationException;
+import Exceptions.AppException;
 import Exceptions.CorruptMessageException;
-import Helpers.Constants;
-import Helpers.Connection;
-import Helpers.Util;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
 
-public class Monitor extends Service {
+import Driver.Connection;
+import Driver.Constants;
+import Driver.Util;
+
+public class Monitor extends ServiceABC {
 
     public Monitor(Connection r) {
         super(r);
@@ -27,6 +28,7 @@ public class Monitor extends Service {
         int monitor_period = Integer.parseInt(request_values[1]);
         long monitor_start = System.currentTimeMillis();
         int monitor_request_id = connection.get_request_id();
+        // long endTime = monitor_start + (Long)monitor_period;
 
         if (monitor_period < 0) {
             System.out.println("Error: bad monitor period");
@@ -35,7 +37,7 @@ public class Monitor extends Service {
 
         try {
             send_and_receive(request_values);
-            List<Byte> update_bytes;
+            byte[] update_bytes;
             connection.socket.setSoTimeout(monitor_period);
             // hacky way of waiting for a certain period for updates from server
             System.out.println("Start receiving updates: ");
@@ -62,7 +64,7 @@ public class Monitor extends Service {
                 System.out.println("Done receiving updates.");
             }
         }
-        catch (ApplicationException ae) {
+        catch (AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");
         }
 
