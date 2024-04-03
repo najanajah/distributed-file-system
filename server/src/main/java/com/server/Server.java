@@ -161,7 +161,7 @@ public class Server {
         if(this.semantics == AT_MOST_ONCE.getValue()){
 //            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
-            this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
+            this.insertHandler = new AtMostOnceHandler(cachedReply, new UpdateHandler(monitoringInfo,new InsertHandler()));
             this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
 //            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
 //            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
