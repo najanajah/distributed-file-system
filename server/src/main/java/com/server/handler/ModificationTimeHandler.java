@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -23,7 +23,7 @@ public class ModificationTimeHandler implements RequestHandler {
         logger.entry();
 
         try {
-            ListTypeChecker.check(request, Constant.GetLastModTimeServiceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.GetLastModTimeServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

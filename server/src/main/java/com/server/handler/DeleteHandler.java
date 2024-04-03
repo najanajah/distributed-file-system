@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -24,7 +24,7 @@ public class DeleteHandler implements RequestHandler {
         logger.trace("Entering DeleteHandler");
 
         try {
-            ListTypeChecker.check(request, Constant.DeleteServiceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.DeleteServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

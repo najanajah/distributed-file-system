@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -27,7 +27,7 @@ public class AtMostOnceHandler implements RequestHandler {
         logger.entry();
 
         try {
-            ListTypeChecker.check(request, Constant.AtMostOnceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.AtMostOnceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

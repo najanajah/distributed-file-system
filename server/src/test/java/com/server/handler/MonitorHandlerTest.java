@@ -1,6 +1,7 @@
 package com.server.handler;
 
 import com.server.Server;
+import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
 import com.server.model.InvocationSemantics;
@@ -78,7 +79,7 @@ class MonitorHandlerTest {
 
         System.out.println("Send to server: " + p);
 
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
         DatagramPacket reply =
                 new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
@@ -108,7 +109,7 @@ class MonitorHandlerTest {
 
                 System.out.println("Send to server: " + p1);
 
-                byte[] buffer1 = new byte[1024];
+                byte[] buffer1 = new byte[Constants.MAX_PACKET_SIZE];
                 DatagramPacket reply1 =
                         new DatagramPacket(buffer1, buffer1.length);
                 dgs1.receive(reply1);
@@ -135,7 +136,7 @@ class MonitorHandlerTest {
 
         DatagramSocket cbSoc = new DatagramSocket(callBackPort);
 
-        buffer = new byte[1024];
+        buffer = new byte[Constants.MAX_PACKET_SIZE];
         reply =
                 new DatagramPacket(buffer, buffer.length);
         cbSoc.receive(reply);

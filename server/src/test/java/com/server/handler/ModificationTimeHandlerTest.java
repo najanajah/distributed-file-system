@@ -1,6 +1,7 @@
 package com.server.handler;
 
 import com.server.Server;
+import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
 import com.server.model.RequestCode;
@@ -66,7 +67,7 @@ class ModificationTimeHandlerTest {
 
         System.out.println("Send to server: " + p);
 
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());

@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -28,7 +28,7 @@ public class MonitorHandler implements RequestHandler {
         logger.entry();
         // retrieve and validate parameters
         try {
-            ListTypeChecker.check(request, Constant.MonitorServiceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.MonitorServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

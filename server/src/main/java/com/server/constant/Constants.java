@@ -3,8 +3,9 @@ package com.server.constant;
 import java.util.Arrays;
 import java.util.List;
 
-public class Constant {
+public class Constants {
     public static final String INSUFFICIENT_DATA_ERROR_MSG = "Insufficient data in buffer";
+    public static final int MAX_PACKET_SIZE = 1024;
 
     public static final List<Class<?>> GetLastModTimeServiceExpectedRequestFormat = Arrays.asList(Character.class, Integer.class, String.class);
     public static final List<Class<?>> AtMostOnceExpectedRequestFormat = Arrays.asList(Character.class, Integer.class);

@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -24,7 +24,7 @@ public class ReadHandler implements RequestHandler {
         logger.trace("Entering ReadHandler");
 
         try {
-            ListTypeChecker.check(request, Constant.ReadServiceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.ReadServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

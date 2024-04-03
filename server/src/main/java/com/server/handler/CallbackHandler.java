@@ -1,6 +1,6 @@
 package com.server.handler;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import com.server.exception.ListTypeMismatchException;
 import com.server.helper.ListTypeChecker;
 import com.server.helper.Util;
@@ -41,7 +41,7 @@ public class CallbackHandler implements RequestHandler {
         }
 
         try {
-            ListTypeChecker.check(request, Constant.CallbackServiceExpectedRequestFormat);
+            ListTypeChecker.check(request, Constants.CallbackServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }

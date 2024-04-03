@@ -1,6 +1,6 @@
 package com.server.helper;
 
-import com.server.constant.Constant;
+import com.server.constant.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -73,7 +73,7 @@ public class Util {
 
     public static byte[] marshal(char messageType, int requestId, List<Object> parameters) {
         // initial size
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.MAX_PACKET_SIZE);
 
         buffer.put((byte) messageType);
         buffer.putInt(requestId);
@@ -159,31 +159,31 @@ public class Util {
             return new String(filePathBytes, StandardCharsets.UTF_8);
         } catch (BufferUnderflowException e) {
             // This exception is thrown if there aren't enough bytes in the buffer
-            throw new IllegalArgumentException(Constant.INSUFFICIENT_DATA_ERROR_MSG + " for string", e);
+            throw new IllegalArgumentException(Constants.INSUFFICIENT_DATA_ERROR_MSG + " for string", e);
         }
     }
 
     private static int readInt(ByteBuffer buffer) {
         try {
             if (buffer.remaining() < Integer.BYTES) {
-                throw new IllegalArgumentException(Constant.INSUFFICIENT_DATA_ERROR_MSG + " for integer");
+                throw new IllegalArgumentException(Constants.INSUFFICIENT_DATA_ERROR_MSG + " for integer");
             }
             return buffer.getInt();
         } catch (BufferUnderflowException e) {
             // This exception is thrown if there aren't enough bytes to read the data type or the number
-            throw new IllegalArgumentException(Constant.INSUFFICIENT_DATA_ERROR_MSG, e);
+            throw new IllegalArgumentException(Constants.INSUFFICIENT_DATA_ERROR_MSG, e);
         }
     }
 
     private static Long readLong(ByteBuffer buffer) {
         try {
             if (buffer.remaining() < Long.BYTES) {
-                throw new IllegalArgumentException(Constant.INSUFFICIENT_DATA_ERROR_MSG + " for long");
+                throw new IllegalArgumentException(Constants.INSUFFICIENT_DATA_ERROR_MSG + " for long");
             }
             return buffer.getLong();
         } catch (BufferUnderflowException e) {
             // This exception is thrown if there aren't enough bytes to read the data type or the number
-            throw new IllegalArgumentException(Constant.INSUFFICIENT_DATA_ERROR_MSG, e);
+            throw new IllegalArgumentException(Constants.INSUFFICIENT_DATA_ERROR_MSG, e);
         }
     }
 }

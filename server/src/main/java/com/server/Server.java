@@ -1,6 +1,7 @@
 package com.server;
 
 import com.server.config.ServerConfig;
+import com.server.constant.Constants;
 import com.server.handler.*;
 import com.server.helper.Util;
 import com.server.model.RegisteredClient;
@@ -40,7 +41,7 @@ public class Server {
         this(ServerConfig.PORT, AT_MOST_ONCE.getValue());
     }
 
-    private RequestHandler modTimeHandler = null;
+    private RequestHandler getLastModTimeHandler = null;
     private RequestHandler readHandler = null;
     private RequestHandler insertHandler = null;
     private RequestHandler monitorHandler = null;
@@ -53,7 +54,7 @@ public class Server {
 
             while (true) {
                 // keep waiting on the designated port
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
                 DatagramPacket requestPacket = new DatagramPacket(buffer, buffer.length);
                 logger.info("Waiting for request at port " + this.port);
 
@@ -95,7 +96,7 @@ public class Server {
                 } else if (requestType == RequestCode.DUPLICATE.getValue()) { // duplicate
                     reply = this.duplicateHandler.handleRequest(request, clientAddr);
                 } else if (requestType == RequestCode.GETLASTMODIFICATIONTIME.getValue()) { // get last modification time
-                    reply = this.modTimeHandler.handleRequest(request, clientAddr);
+                    reply = this.getLastModTimeHandler.handleRequest(request, clientAddr);
                 } else {
                     String msg = "Unrecognized code " + requestType;
                     logger.error(msg);
@@ -125,14 +126,14 @@ public class Server {
         RequestHandler deleteHandler = new CallbackHandler(monitoringInfo, new DeleteHandler());
 
         if (this.semantics == AT_MOST_ONCE.getValue()) {
-            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
+            this.getLastModTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
             this.insertHandler = new AtMostOnceHandler(cachedReply, new CallbackHandler(monitoringInfo, new InsertHandler()));
             this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
             this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         } else if (this.semantics == AT_LEAST_ONCE.getValue()) {
-            this.modTimeHandler = modTimeHandler;
+            this.getLastModTimeHandler = modTimeHandler;
             this.readHandler = readHandler;
             this.insertHandler = insertHandler;
             this.monitorHandler = monitorHandler;
