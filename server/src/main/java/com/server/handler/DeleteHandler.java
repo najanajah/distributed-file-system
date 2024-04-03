@@ -1,5 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.constant.Constant;
+import com.server.helper.ListTypeChecker;
+import com.server.exception.ListTypeMismatchException;
+import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,14 +21,11 @@ public class DeleteHandler implements RequestHandler {
 
     @Override
     public List<Object> handleRequest(List<Object> request, InetAddress client) {
-        //Validate and retrieve parameters
+        // validate and retrieve parameters
         logger.trace("Entering DeleteHandler");
 
-        List<Class<?>> expectedTypes = Arrays.asList(Character.class, Integer.class, String.class);
-
-
         try {
-            ListTypeChecker.check(request, expectedTypes);
+            ListTypeChecker.check(request, Constant.DeleteServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }
@@ -34,7 +35,7 @@ public class DeleteHandler implements RequestHandler {
         String path = (String) request.get(2);
 
 
-        //Perform the deletion
+        // perform the deletion
         Path filePath = Paths.get(path);
 
         try {

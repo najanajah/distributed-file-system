@@ -1,11 +1,7 @@
-package com.server;
+package com.server.model;
 
 import java.net.InetAddress;
-/**
- * An instance of main.java.com.server.MonitoringClientInfo is a record for the clients that monitoring a certain file.
- * The record consists of a client's IP, port number and the time when monitoring expires.
- *
- */
+
 public class RegisteredClient {
 
     private final InetAddress clientAddr;

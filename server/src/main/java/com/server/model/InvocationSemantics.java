@@ -1,4 +1,4 @@
-package com.server;
+package com.server.model;
 
 public enum InvocationSemantics {
     AT_MOST_ONCE(1),

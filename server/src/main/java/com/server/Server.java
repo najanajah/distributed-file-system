@@ -1,5 +1,10 @@
 package com.server;
 
+import com.server.config.ServerConfig;
+import com.server.handler.*;
+import com.server.helper.Util;
+import com.server.model.RegisteredClient;
+import com.server.model.RequestCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,8 +15,8 @@ import java.net.InetAddress;
 import java.nio.file.Path;
 import java.util.*;
 
-import static com.server.InvocationSemantics.AT_LEAST_ONCE;
-import static com.server.InvocationSemantics.AT_MOST_ONCE;
+import static com.server.model.InvocationSemantics.AT_LEAST_ONCE;
+import static com.server.model.InvocationSemantics.AT_MOST_ONCE;
 
 public class Server {
     static Logger logger = LogManager.getLogger(Server.class.getName());
@@ -38,8 +43,6 @@ public class Server {
     private  RequestHandler readHandler = null;
     private  RequestHandler insertHandler = null;
     private  RequestHandler monitorHandler = null;
-//    private  RequestHandler renameHandler = null;
-//    private  RequestHandler appendHandler = null;
     private RequestHandler duplicateHandler = null;
     private RequestHandler deleteHandler = null;
 
@@ -48,25 +51,20 @@ public class Server {
         try(DatagramSocket dgs = new DatagramSocket(this.port)){
 
             while(true){
-//////////////////////////////////////////////////////////////
-                //Keep waiting on the designated port
+                // keep waiting on the designated port
                 byte[] buffer = new byte[1024];
                 DatagramPacket requestPacket =
-                        new DatagramPacket(buffer,buffer.length);
+                        new DatagramPacket(buffer, buffer.length);
                 logger.info("Waiting for request at port " + this.port);
-//////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-                //Retrieve the request message
+                // retrieve the request message
                 dgs.receive(requestPacket);
                 byte[] data = Arrays.copyOf(requestPacket.getData(), requestPacket.getLength());
                 InetAddress clientAddr = requestPacket.getAddress();
                 int  clientPort = requestPacket.getPort();
                 List<Object> request;
-//////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-                //Try to unmarshal the received packet
+                // try to unmarshal the received packet
                 try{
                     request = Util.unmarshal(data);
                 }catch(Exception e){
@@ -74,52 +72,30 @@ public class Server {
                     msg += " Marshalling Failed: " + e.getMessage();
                     logger.error(msg);
 
-//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
+                    // return an error message
+                    Util.sendPacket(clientAddr, clientPort, '0', 0, Util.errorPacket(msg));
                     continue;
                 }
 
-                logger.info("Received Request " + request + "From " + clientAddr.getHostAddress() + " At Port " + clientPort);
-//////////////////////////////////////////////////////////////
+                logger.info("Received Request " + request + " From " + clientAddr.getHostAddress() + " At Port " + clientPort);
 
-//////////////////////////////////////////////////////////////
-                //Retrieve and validate requests
-//                List<String> missingFields = new LinkedList<>();
-//                if(request.get("code") == null){
-//                    missingFields.add("code");
-//                }
-//                if(missingFields.size() > 0){
-//                    String msg = Util.missingFieldMsg(missingFields);
-//                    logger.error(msg);
-//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
-//                    continue;
-//                }
-//
-//                if(!(request.get("code") instanceof Integer)){
-//                    String msg = Util.inconsistentFieldTypeMsg("code", "integer");
-//                    logger.error(msg);
-//                    Util.sendPacket(clientAddr, clientPort, Util.errorPacket(msg));
-//                    continue;
-//                }
-//                int code = (Integer)request.get("code");
                 char requestType = (char) request.get(0);
                 int requestId = (int) request.get(1);
-//////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////
-                //Route the request to specific request handlers based on the request code
+                // route the request to specific request handlers based on the request code
                 List<Object> reply;
-                if(requestType == '1'){ // read
-                    reply = this.readHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '2'){ // write
-                    reply = this.insertHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '3'){ // monitor
-                    reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '4'){ // delete
-                    reply = this.deleteHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '5') { // duplicate
-                    reply = this.duplicateHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                } else if (requestType == '6') {
-                    reply = this.modTimeHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                if(requestType == RequestCode.READ.getValue()){ // read
+                    reply = this.readHandler.handleRequest(request, clientAddr);
+                }else if(requestType == RequestCode.INSERT.getValue()){ // write
+                    reply = this.insertHandler.handleRequest(request, clientAddr);
+                }else if(requestType == RequestCode.MONITOR.getValue()){ // monitor
+                    reply = this.monitorHandler.handleRequest(request, clientAddr);
+                }else if(requestType == RequestCode.DELETE.getValue()){ // delete
+                    reply = this.deleteHandler.handleRequest(request, clientAddr);
+                }else if(requestType == RequestCode.DUPLICATE.getValue()) { // duplicate
+                    reply = this.duplicateHandler.handleRequest(request, clientAddr);
+                } else if (requestType == RequestCode.GETLASTMODIFICATIONTIME.getValue()) { // get last modification time
+                    reply = this.modTimeHandler.handleRequest(request, clientAddr);
                 }else{
                     String msg = "Unrecognized code " + requestType;
                     logger.error(msg);
@@ -127,9 +103,7 @@ public class Server {
                 }
 
                 Util.sendPacket(clientAddr, clientPort, requestType, requestId, reply);
-//////////////////////////////////////////////////////////////
-
-            }//End of while(true)
+            }
         } catch (IOException e1) {
             logger.fatal(e1.getMessage());
             e1.printStackTrace();
@@ -137,11 +111,7 @@ public class Server {
         logger.exit();
     }
 
-
-    /**
-     * Construct the request handlers and chain them into a list
-     * based on the configured semantics.
-     */
+    // construct the request handlers and chain them into a list based on the configured semantics.
     private  void configureRequestHandler(){
         logger.entry();
         Map<String,List<Object>> cachedReply = new HashMap<>();
@@ -149,20 +119,16 @@ public class Server {
 
         RequestHandler modTimeHandler = new ModificationTimeHandler();
         RequestHandler readHandler = new ReadHandler();
-        RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
-//        RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
-//        RequestHandler renameHandler = new RenameHandler();
+        RequestHandler insertHandler = new CallbackHandler(monitoringInfo, new InsertHandler());
         RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
         RequestHandler duplicateHandler = new DuplicateHandler();
-        RequestHandler deleteHandler = new DeleteHandler();
+        RequestHandler deleteHandler = new CallbackHandler(monitoringInfo, new DeleteHandler());
 
         if(this.semantics == AT_MOST_ONCE.getValue()){
             this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
-            this.insertHandler = new AtMostOnceHandler(cachedReply, new UpdateHandler(monitoringInfo,new InsertHandler()));
+            this.insertHandler = new AtMostOnceHandler(cachedReply, new CallbackHandler(monitoringInfo,new InsertHandler()));
             this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
-//            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
-//            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
             this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
@@ -170,8 +136,6 @@ public class Server {
             this.readHandler = readHandler;
             this.insertHandler = insertHandler;
             this.monitorHandler = monitorHandler;
-//            this.renameHandler = renameHandler;
-//            this.appendHandler = appendHandler;
             this.duplicateHandler = duplicateHandler;
             this.deleteHandler = deleteHandler;
         }else{

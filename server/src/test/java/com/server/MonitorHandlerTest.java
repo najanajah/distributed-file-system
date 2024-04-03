@@ -1,5 +1,8 @@
 package com.server;
 
+import com.server.helper.TestUtil;
+import com.server.helper.Util;
+import com.server.model.InvocationSemantics;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -31,7 +34,7 @@ class MonitorHandlerTest {
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException{
-        serverThread = new Thread(() -> new Server(port,InvocationSemantics.AT_MOST_ONCE.getValue()).start());
+        serverThread = new Thread(() -> new Server(port, InvocationSemantics.AT_MOST_ONCE.getValue()).start());
         serverThread.start();
 
         Thread.sleep(2000);
