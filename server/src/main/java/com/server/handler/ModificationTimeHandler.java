@@ -52,7 +52,7 @@ public class ModificationTimeHandler implements RequestHandler {
         // construct the reply message
         List<Object> reply = new ArrayList<>();
         reply.add(1);
-        reply.add(modificationTime);
+        reply.add(String.valueOf(modificationTime));
         logger.exit();
         return reply;
     }

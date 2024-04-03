@@ -1,7 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -14,46 +16,43 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ReadHandlerTest {
-    private Thread serverThread = null;
-    private File file = null;
-    private String filePath = "test/read.txt";
+    private static Thread serverThread = null;
+    private static File file = null;
+    private static String filePath = "test/read.txt";
     private Integer offset = 0;
     private Integer numBytes = 12;
-    private int port = 8888;
-    String contents = "Test Reading";
-
+    private static int port = 8899;
+    static String contents = "Test Reading";
 
     @BeforeAll
-    public void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException{
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
 
         Thread.sleep(2000);
-        //Create the test file
+        // create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
         if(file.exists()) file.delete();
         file.createNewFile();
 
-
-        //Write the contents
-        BufferedWriter bw = new BufferedWriter(new FileWriter(this.file));
+        // write the contents
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
         bw.write(contents);
         bw.close();
-
     }
 
     @Test
     public void test() throws Exception {
-
         List<Object> p = new ArrayList<>();
-        char requestType = '1';
+        char requestType = RequestCode.READ.getValue();
         int requestId = 256;
         p.add(filePath);
         p.add(offset);
@@ -67,7 +66,6 @@ public class ReadHandlerTest {
                 new DatagramPacket(b, b.length, serverAddr, port);
         dgs.send(request);
 
-
         System.out.println("Send to server: " + p);
 
         byte[] buffer = new byte[1024];
@@ -79,16 +77,15 @@ public class ReadHandlerTest {
         List<Object> response = TestUtil.unmarshalReply(data);
         System.out.println(response);
 
-        assertEquals(1, (int) (Integer) response.get(2));
-        assertNotNull(response.get(1));
-
-        String content = (String)response.get(3);
-        assertEquals(content, contents);
+        assertEquals(requestType, (char) response.get(0));
+        assertEquals(requestId, (int) response.get(1));
+        assertEquals(1, (int) response.get(2));
+        assertEquals((String) response.get(3), contents);
 
     }
 
     @AfterAll
-    public void tearDown(){
+    public static void tearDown(){
         serverThread.interrupt();
         file.delete();
     }

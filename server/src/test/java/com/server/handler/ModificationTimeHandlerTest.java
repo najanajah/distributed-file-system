@@ -1,7 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,12 +22,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DeleteHandlerTest {
+class ModificationTimeHandlerTest {
     private static Thread serverThread = null;
     private static File file = null;
-    private static final String filePath = "test/delete.txt";
-    private static final int port = 3456;
-    private static final String contents = "Test Deleting";
+    private static String filePath = "test/get_modification_time.txt";
+    private static int port = 8888;
+    static String contents = "Test Getting Modification Time";
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException{
@@ -33,13 +35,14 @@ class DeleteHandlerTest {
         serverThread.start();
 
         Thread.sleep(2000);
-        //Create the test file
+
+        // create the test file
         file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
         if(file.exists()) file.delete();
         file.createNewFile();
 
-        //Write the contents
+        // write the contents
         BufferedWriter bw = new BufferedWriter(new FileWriter(file));
         bw.write(contents);
         bw.close();
@@ -49,8 +52,8 @@ class DeleteHandlerTest {
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = '4';
-        int requestId = 9999;
+        char requestType = RequestCode.GETLASTMODIFICATIONTIME.getValue();
+        int requestId = 256;
         p.add(filePath);
 
         byte[] b = Util.marshal(requestType, requestId, p);
@@ -64,8 +67,7 @@ class DeleteHandlerTest {
         System.out.println("Send to server: " + p);
 
         byte[] buffer = new byte[1024];
-        DatagramPacket reply =
-                new DatagramPacket(buffer,buffer.length);
+        DatagramPacket reply = new DatagramPacket(buffer,buffer.length);
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
@@ -74,10 +76,7 @@ class DeleteHandlerTest {
         assertEquals(requestType, (char) response.get(0));
         assertEquals(requestId, (int) response.get(1));
         assertEquals(1, (int) response.get(2));
-        assertNotNull(response.get(3));
-
-        File sourceFile = Paths.get(filePath).toFile();
-        assertFalse(sourceFile.exists());
+        assertEquals(response.get(3), String.valueOf(file.lastModified()));
     }
 
     @AfterAll
@@ -85,5 +84,4 @@ class DeleteHandlerTest {
         serverThread.interrupt();
         file.delete();
     }
-
 }

@@ -1,7 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,40 +25,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class InsertHandlerTest {
-    private Thread serverThread = null;
-    private File file = null;
-    private String filePath = "test/insert.txt";
-    private int port = 8603;
-    String contents = "Test Inserting";
+    private static Thread serverThread = null;
+    private static File file = null;
+    private static final String filePath = "test/insert.txt";
+    private static final int port = 8603;
+    static String contents = "Test Inserting";
     private Integer offset = 0;
     private String insertedContent = "Stop ";
 
 
     @BeforeAll
-    public void setUp() throws IOException, InterruptedException{
+    public static void setUp() throws IOException, InterruptedException{
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
         Thread.sleep(2000);
-        //Create the test file
 
-        this.file = Paths.get(filePath).toFile();
+        // create the test file
+        file = Paths.get(filePath).toFile();
         if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
         if(file.exists()) file.delete();
         file.createNewFile();
 
-
-        //Write the contents
-        BufferedWriter bw = new BufferedWriter(new FileWriter(this.file));
+        // write the contents
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
         bw.write(contents);
         bw.close();
     }
-
 
     @Test
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = '2';
+        char requestType = RequestCode.INSERT.getValue();
         int requestId = 233;
         p.add(filePath);
         p.add(offset);
@@ -68,7 +68,6 @@ public class InsertHandlerTest {
         DatagramPacket request =
                 new DatagramPacket(b, b.length, serverAddr, port);
         dgs.send(request);
-
 
         System.out.println("Send to server: " + p);
 
@@ -86,39 +85,16 @@ public class InsertHandlerTest {
         assertEquals(1, (int) response.get(2));
         assertNotNull(response.get(3));
 
-        this.file = Paths.get(filePath).toFile();
+        file = Paths.get(filePath).toFile();
         Scanner fileScanner = new Scanner(file);
         String content = fileScanner.useDelimiter("\\Z").next();
         fileScanner.close();
         assertEquals(content, "Stop Test Inserting");
-
-//
-//        dgs.send(request);
-//
-//
-//        System.out.println("Send to server: " + p);
-//
-//        buffer = new byte[1024];
-//        reply =
-//                new DatagramPacket(buffer,buffer.length);
-//        dgs.receive(reply);
-//        data = Arrays.copyOf(reply.getData(), reply.getLength());
-//
-//        response = Util.unmarshal(data);
-//
-//        assertTrue((Integer) response.get("status") == 1);
-//        assertTrue(response.get("message") != null);
-//
-//        this.file = Paths.get(filePath).toFile();
-//        fileScanner = new Scanner(file);
-//        content = fileScanner.useDelimiter("\\Z").next();
-//        assertTrue(content.equals("abczyxdefghi"));
-//        fileScanner.close();
     }
 
     @AfterAll
-    public void tearDown(){
-        this.serverThread.interrupt();
-        this.file.delete();
+    public static void tearDown(){
+        serverThread.interrupt();
+        file.delete();
     }
 }
