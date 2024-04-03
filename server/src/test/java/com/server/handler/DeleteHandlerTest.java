@@ -1,5 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
+import com.server.helper.TestUtil;
+import com.server.helper.Util;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +26,7 @@ class DeleteHandlerTest {
     private static Thread serverThread = null;
     private static File file = null;
     private static final String filePath = "test/delete.txt";
-    private static final int port = 3456;
+    private static final int port = 8898;
     private static final String contents = "Test Deleting";
 
     @BeforeAll
@@ -47,7 +51,7 @@ class DeleteHandlerTest {
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = '4';
+        char requestType = RequestCode.DELETE.getValue();
         int requestId = 9999;
         p.add(filePath);
 

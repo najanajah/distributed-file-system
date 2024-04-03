@@ -1,5 +1,9 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
+import com.server.helper.TestUtil;
+import com.server.helper.Util;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -12,53 +16,51 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class DuplicateHandlerTest {
+public class InsertHandlerTest {
     private static Thread serverThread = null;
-    private static File destinationFile = null;
-    private static File sourceFile = null;
+    private static File file = null;
+    private static final String filePath = "test/insert.txt";
+    private static final int port = 8603;
+    static String contents = "Test Inserting";
+    private Integer offset = 0;
+    private String insertedContent = "Stop ";
 
-    private static final String sourcePath = "test/source.txt";
-    private static final String destinationPath = "test/destination.txt";
-
-    private static final int port = 8872;
-    private static final String contents = "Test File Renaming";
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException{
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
-
         Thread.sleep(2000);
-        //Create the test file
-        sourceFile = Paths.get(sourcePath).toFile();
 
-        if (!sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
+        // create the test file
+        file = Paths.get(filePath).toFile();
+        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if(file.exists()) file.delete();
+        file.createNewFile();
 
-        if(sourceFile.exists()) sourceFile.delete();
-        sourceFile.createNewFile();
-
-        //Write the contents
-        BufferedWriter bw = new BufferedWriter(new FileWriter(sourceFile));
+        // write the contents
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
         bw.write(contents);
         bw.close();
-
-        destinationFile = Paths.get(destinationPath).toFile();
-        destinationFile.delete();
     }
 
     @Test
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = '5';
-        int requestId = 1;
-        p.add(sourcePath);
-        p.add(destinationPath);
-
+        char requestType = RequestCode.INSERT.getValue();
+        int requestId = 233;
+        p.add(filePath);
+        p.add(offset);
+        p.add(insertedContent);
         byte[] b = Util.marshal(requestType, requestId, p);
 
         DatagramSocket dgs = new DatagramSocket();
@@ -76,31 +78,23 @@ class DuplicateHandlerTest {
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
         List<Object> response = TestUtil.unmarshalReply(data);
+        System.out.println(response);
 
         assertEquals(requestType, (char) response.get(0));
         assertEquals(requestId, (int) response.get(1));
         assertEquals(1, (int) response.get(2));
         assertNotNull(response.get(3));
 
-        File sourceFile = Paths.get(sourcePath).toFile();
-        File destinationFile = Paths.get(destinationPath).toFile();
-        assertTrue(sourceFile.exists());
-        assertTrue(destinationFile.exists());
-
-        Scanner fileScanner = new Scanner(destinationFile);
+        file = Paths.get(filePath).toFile();
+        Scanner fileScanner = new Scanner(file);
         String content = fileScanner.useDelimiter("\\Z").next();
         fileScanner.close();
-
-        assertEquals(content, contents);
+        assertEquals(content, "Stop Test Inserting");
     }
 
     @AfterAll
     public static void tearDown(){
         serverThread.interrupt();
-        destinationFile.delete();
-        sourceFile.delete();
+        file.delete();
     }
-
 }
-
-

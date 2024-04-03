@@ -1,5 +1,10 @@
-package com.server;
+package com.server.handler;
 
+import com.server.Server;
+import com.server.helper.TestUtil;
+import com.server.helper.Util;
+import com.server.model.InvocationSemantics;
+import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -27,11 +32,11 @@ class MonitorHandlerTest {
     private static final String insertedContent = "abcxyzdefghi";
     private static final int offset = 3;
     private static final Long interval = 10000L;
-    private static final String IPAddress = "127.0";
+    private static final int callBackPort = 8897;
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException{
-        serverThread = new Thread(() -> new Server(port,InvocationSemantics.AT_MOST_ONCE.getValue()).start());
+        serverThread = new Thread(() -> new Server(port, InvocationSemantics.AT_MOST_ONCE.getValue()).start());
         serverThread.start();
 
         Thread.sleep(2000);
@@ -49,31 +54,15 @@ class MonitorHandlerTest {
 
     @Test
     public void insert() throws Exception {
-        int cbPort = 9000;
-
-//        Map<String,Object> p = new HashMap<>();
-//        p.put("time",System.currentTimeMillis());
-//        p.put("code", 3);
-//        p.put("path", filePath);
-//        p.put("duration", 10000L);
-//        p.put("port", cbPort);
-
-//        char requestType = (char) request.get(0);
-//        int requestId = (Integer) request.get(1);
-//        Long requestTime = (Long) request.get(2);
-//        String path = (String) request.get(3);
-//        Integer offset = (Integer) request.get(4);
-//        String insertedContent = (String) request.get(5);
-
         List<Object> p = new ArrayList<>();
-        char requestType = '3';
+        char requestType = RequestCode.MONITOR.getValue();
         int requestId = 1;
-        char insertRequestType = '2';
+        char insertRequestType = RequestCode.INSERT.getValue();
         int insertRequestId = 2;
 
         p.add(filePath);
         p.add(interval);
-        p.add(cbPort);
+        p.add(callBackPort);
 
         byte[] b = Util.marshal(requestType, requestId, p);
 
@@ -95,9 +84,6 @@ class MonitorHandlerTest {
 
         assertEquals(1, (int) response.get(2));
         assertNotNull(response.get(3));
-//        Long expiration = (Long)response.get("end");
-//        assertTrue(System.currentTimeMillis() < expiration);
-//        assertTrue(expiration <= System.currentTimeMillis() + 10000L);
 
         // perform inserting
         new Thread(() -> {
@@ -107,12 +93,7 @@ class MonitorHandlerTest {
                 p1.add(filePath);
                 p1.add(offset);
                 p1.add(contentToInsert);
-//
-//                p1.put("time",System.currentTimeMillis());
-//                p1.put("code", 2);
-//                p1.put("offset", 3);
-//                p1.put("path", filePath);
-//                p1.put("insertion", contentToInsert);
+
                 byte[] b1 = Util.marshal(insertRequestType, insertRequestId, p1);
 
                 DatagramSocket dgs1 = new DatagramSocket();
@@ -120,7 +101,6 @@ class MonitorHandlerTest {
                 DatagramPacket request1 =
                         new DatagramPacket(b1, b1.length, serverAddr1, port);
                 dgs1.send(request1);
-
 
                 System.out.println("Send to server: " + p1);
 
@@ -149,7 +129,7 @@ class MonitorHandlerTest {
         }).start();
 
 
-        DatagramSocket cbSoc = new DatagramSocket(cbPort);
+        DatagramSocket cbSoc = new DatagramSocket(callBackPort);
 
         buffer = new byte[1024];
         reply =
@@ -162,15 +142,6 @@ class MonitorHandlerTest {
         assertEquals(insertRequestType, (char) response.get(0));
         assertEquals(insertRequestId, (int) response.get(1));
         assertEquals(1, (int) response.get(2));
-
-//        long modTime = (Long)response.get("time");
-//        assertTrue(modTime <= System.currentTimeMillis());
-//
-//        String monitorPath = (String)response.get("path");
-//        assertEquals(monitorPath, filePath);
-//
-//        String modifier = (String)response.get("modifier");
-//        assertTrue(modifier.startsWith(IPAddress));
 
         String content = (String)response.get(3);
         assertEquals(insertedContent, content);

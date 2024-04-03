@@ -1,4 +1,4 @@
-package com.server;
+package com.server.handler;
 
 import java.net.InetAddress;
 import java.util.List;

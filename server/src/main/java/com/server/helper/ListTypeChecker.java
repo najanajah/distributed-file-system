@@ -1,12 +1,8 @@
-package com.server;
+package com.server.helper;
+
+import com.server.exception.ListTypeMismatchException;
 
 import java.util.List;
-
-class ListTypeMismatchException extends Exception {
-    public ListTypeMismatchException(String message) {
-        super(message);
-    }
-}
 
 public class ListTypeChecker {
     public static void check(List<Object> list, List<Class<?>> expectedTypes) throws ListTypeMismatchException {
