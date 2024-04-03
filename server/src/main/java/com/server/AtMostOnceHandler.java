@@ -1,6 +1,7 @@
 package com.server;
 
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,42 +13,54 @@ public class AtMostOnceHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(AtMostOnceHandler.class.getName());
 
     //key: Client IP + Request Timestamp; value; original reply
-    private Map<String, Map<String,Object>> responseCache = null;
+    private Map<String, List<Object>> responseCache = null;
     private RequestHandler nextRqHdler = null;
 
-    public AtMostOnceHandler(Map<String, Map<String, Object>> responseCache, RequestHandler nextRqHdler) {
+    public AtMostOnceHandler(Map<String, List<Object>> responseCache, RequestHandler nextRqHdler) {
         super();
         this.responseCache = responseCache;
         this.nextRqHdler = nextRqHdler;
     }
 
     @Override
-    public Map<String, Object> handleRequest(Map<String, Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client) {
         logger.entry();
 //////////////////////////////////////////////////////////////
+
+        List<Class<?>> expectedTypes = Arrays.asList(Character.class, Integer.class);
+
+        try {
+            ListTypeChecker.check(request, expectedTypes);
+        } catch (ListTypeMismatchException e) {
+            return Util.errorPacket(e.getMessage());
+        }
+
+        char requestType = (char) request.get(0);
+        int requestId = (Integer) request.get(1);
+
 //Validate and retrieve tweets
-        List<String> missingFields = new LinkedList<String>();
-
-        if(request.get("time") == null){
-
-            missingFields.add("time");
-        }
-
-        if(missingFields.size() > 0){
-            return Util.errorPacket(Util.missingFieldMsg(missingFields));
-        }
-
-        if(!(request.get("time") instanceof Long)){
-            return Util.errorPacket(Util.inconsistentFieldTypeMsg("time", "long"));
-        }
-
-        long requestTime = (Long)request.get("time");
+//        List<String> missingFields = new LinkedList<String>();
+//
+//        if(request.get("time") == null){
+//
+//            missingFields.add("time");
+//        }
+//
+//        if(missingFields.size() > 0){
+//            return Util.errorPacket(Util.missingFieldMsg(missingFields));
+//        }
+//
+//        if(!(request.get("time") instanceof Long)){
+//            return Util.errorPacket(Util.inconsistentFieldTypeMsg("time", "long"));
+//        }
+//
+//        long requestTime = (Long)request.get("time");
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
         //Search in the cache
-        String key = client.getHostName() + "." + requestTime;
-        Map<String,Object> preReply = this.responseCache.get(key);
+        String key = client.getHostName() + "." + requestId;
+        List<Object> preReply = this.responseCache.get(key);
 
         if(preReply != null) {
             //return the cached reply if found
@@ -58,7 +71,7 @@ public class AtMostOnceHandler implements RequestHandler {
 
 //////////////////////////////////////////////////////////////
 //Pass the request to next response handler
-        Map<String,Object> nextResponse = this.nextRqHdler.handleRequest(request, client);
+        List<Object> nextResponse = this.nextRqHdler.handleRequest(request, client);
 
 //Update the cache using the client ip and timestamp
         this.responseCache.put(key, nextResponse);
