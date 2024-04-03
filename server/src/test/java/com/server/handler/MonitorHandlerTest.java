@@ -36,7 +36,6 @@ class MonitorHandlerTest {
     private static final String insertedContent = "abcxyzdefghi";
     private static final int offset = 3;
     private static final Long interval = 10000L;
-    private static final int callBackPort = 8897;
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException {
@@ -66,7 +65,6 @@ class MonitorHandlerTest {
 
         p.add(filePath);
         p.add(interval);
-        p.add(callBackPort);
 
         byte[] b = Util.marshal(requestType, requestId, p);
 
@@ -75,6 +73,8 @@ class MonitorHandlerTest {
         DatagramPacket request =
                 new DatagramPacket(b, b.length, serverAddr, port);
         dgs.send(request);
+
+        int callBackPort = dgs.getLocalPort();
 
         System.out.println("Send to server: " + p);
 
@@ -132,13 +132,10 @@ class MonitorHandlerTest {
             }
         }).start();
 
-
-        DatagramSocket cbSoc = new DatagramSocket(callBackPort);
-
         buffer = new byte[Constants.MAX_PACKET_SIZE];
         reply =
                 new DatagramPacket(buffer, buffer.length);
-        cbSoc.receive(reply);
+        dgs.receive(reply);
         data = Arrays.copyOf(reply.getData(), reply.getLength());
 
         response = TestUtil.unmarshalReply(data);
@@ -149,7 +146,7 @@ class MonitorHandlerTest {
 
         String content = (String) response.get(3);
         assertEquals(insertedContent, content);
-        cbSoc.close();
+        dgs.close();
     }
 
     @AfterAll
