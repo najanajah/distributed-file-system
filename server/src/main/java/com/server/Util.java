@@ -168,7 +168,8 @@ public class Util {
                 case '3': // monitor
                     Collections.addAll(request, readString(buffer), readLong(buffer), readInt(buffer));
                     break;
-                case '4': // get metadata
+                case '4': // get delete
+                case '6': // get modificationTime
                     Collections.addAll(request, readString(buffer));
                     break;
                 case '5': // duplicate

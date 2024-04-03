@@ -34,7 +34,7 @@ public class Server {
     public Server(){
         this(ServerConfig.PORT, AT_MOST_ONCE.getValue());
     }
-//    private  RequestHandler modTimeHandler = null;
+    private  RequestHandler modTimeHandler = null;
     private  RequestHandler readHandler = null;
     private  RequestHandler insertHandler = null;
     private  RequestHandler monitorHandler = null;
@@ -103,9 +103,6 @@ public class Server {
 //                int code = (Integer)request.get("code");
                 char requestType = (char) request.get(0);
                 int requestId = (int) request.get(1);
-
-                System.out.println("requestType: " + requestType);
-                System.out.println("requestId: " + requestId);
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
@@ -119,9 +116,10 @@ public class Server {
                     reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else if(requestType == '4'){ // delete
                     reply = this.deleteHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '5'){ // duplicate
-                    System.out.println("duplicate being called");
+                }else if(requestType == '5') { // duplicate
                     reply = this.duplicateHandler.handleRequest((ArrayList<Object>) request, clientAddr);
+                } else if (requestType == '6') {
+                    reply = this.modTimeHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else{
                     String msg = "Unrecognized code " + requestType;
                     logger.error(msg);
@@ -149,7 +147,7 @@ public class Server {
         Map<String,List<Object>> cachedReply = new HashMap<>();
         Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
 
-//        RequestHandler modTimeHandler = new ModificationTimeHandler();
+        RequestHandler modTimeHandler = new ModificationTimeHandler();
         RequestHandler readHandler = new ReadHandler();
         RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
 //        RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
@@ -159,7 +157,7 @@ public class Server {
         RequestHandler deleteHandler = new DeleteHandler();
 
         if(this.semantics == AT_MOST_ONCE.getValue()){
-//            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
+            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
             this.insertHandler = new AtMostOnceHandler(cachedReply, new UpdateHandler(monitoringInfo,new InsertHandler()));
             this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
@@ -168,7 +166,7 @@ public class Server {
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
             this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
-//            this.modTimeHandler =  modTimeHandler;
+            this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;
             this.insertHandler = insertHandler;
             this.monitorHandler = monitorHandler;
