@@ -13,6 +13,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Logger;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,8 +23,8 @@ public class ReadHandlerTest {
     private Thread serverThread = null;
     private File file = null;
     private String filePath = "test/read.txt";
-    private Integer offset = 3;
-    private Integer numBytes = 5;
+    private Integer offset = 0;
+    private Integer numBytes = 12;
     private int port = 8888;
     String contents = "Test Reading";
 
@@ -76,12 +77,13 @@ public class ReadHandlerTest {
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
-        List<Object> response = Util.unmarshal(data);
+        List<Object> response = TestUtil.unmarshalReply(data);
+        System.out.println(response);
 
-        assertEquals(1, (int) (Integer) response.get(3));
+        assertEquals(1, (int) (Integer) response.get(2));
         assertNotNull(response.get(1));
 
-        String content = (String)response.get(-1);
+        String content = (String)response.get(3);
         assertEquals(content, contents);
 
     }
