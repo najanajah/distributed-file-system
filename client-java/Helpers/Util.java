@@ -25,7 +25,7 @@ public class Util {
      * @throws ApplicationException BadPathnameException, BadRangeException, FilEmptyException
      */
     public static Map<String, Object> send_and_receive(int service_id, String[] values, Connection connection) throws IOException, ApplicationException {
-        if (Constants.DEBUG) System.out.println("(log) Begin send/receive for service id " + service_id + ":");
+        if (Constants.DEBUG) System.out.println("(log) Begin send/receive for service id " + service_id + "and req id " + connection.get_request_id());
         connection.socket.setSoTimeout(Constants.TIMEOUT);
         List<Byte> reply_content;
         List<List<Byte>> request = Util.marshall(connection.get_request_id(), service_id, values);
@@ -69,8 +69,9 @@ public class Util {
      */
     public static List<List<Byte>> marshall(int request_id, int service_id, String[] values) {
         List<Pair<String, Integer>> params = Constants.get_request_params(service_id);
-        List<Byte> raw_content = marshall_to_content(service_id, params, values);
-        List<List<Byte>> message = marshall_to_packets(service_id , request_id, raw_content);
+        System.out.println("params" + params);
+        List<List<Byte>>  message = marshall_to_content(service_id, request_id, params, values);
+        // List<List<Byte>> message = marshall_to_packets(service_id , request_id, raw_content);
         return message;
     }
 
@@ -92,14 +93,16 @@ public class Util {
      * @throws IOException from socket receive
      */
 
-    public static List<Byte> receive_message(int check_request_id, Connection connection) throws IOException, CorruptMessageException {
+    public static List<Byte> receive_message(int request_id, Connection connection) throws IOException, CorruptMessageException {
 
         // int total_packets = -1;
         List<Byte> all_content = new ArrayList<>();
         // int current_packet = 0;
-        int overall_content_size = 0;
+        // int overall_content_size = 0;
         // while (total_packets == -1 || current_packet != total_packets) {
+            System.out.println("Trying to receive packet"); 
             byte[] packet = connection.receive_packet();
+            System.out.println("getting header"); 
             int[] header = get_header(packet);
             int receive_request_id = header[1];
             // overall_content_size = header[1];
@@ -108,10 +111,10 @@ public class Util {
             //     throw new CorruptMessageException();
             // }
             // (hacky) blindly acknowledge old replies
-            if (connection.at_most_once && receive_request_id < check_request_id) {
+            if (connection.at_most_once && receive_request_id < request_id) {
             // if (connection.at_most_once){  
                 // send acknowledgment
-                if (Constants.DEBUG) System.out.println("(log) Blindly acknowledging old request id " + check_request_id);
+                if (Constants.DEBUG) System.out.println("(log) Blindly acknowledging old request id " + request_id);
                 List<List<Byte>> ack = Util.marshall(0, Constants.ACKNOWLEDGMENT_ID, new String[0]);
                 Util.send_message(ack, connection);
                 // current_packet--;
@@ -268,29 +271,47 @@ public class Util {
                 ((bytes.get(0) & 0xFF) << 24 );
     }
 
-    private static List<Byte> marshall_to_content(int service_id, List<Pair<String, Integer>> params, String[] values) {
+    private static List<List<Byte>>  marshall_to_content(int service_id, int request_id,  List<Pair<String, Integer>> params, String[] values) {
         
         List<Byte> raw_content = new ArrayList<>();
-        // raw_content = add_int(service_id, raw_content);
+        
+        System.out.println(service_id);
+        char sid = sidToChar(service_id); 
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+
+        buffer.put((byte) sid);
+        buffer.putInt(request_id);
+
         for (int i = 0; i < params.size(); i++) {
             int param_type = params.get(i).getValue();
-            // strings are preceded by their length
             if (param_type == Constants.STRING_ID) {
-                // String value = values[i];
-                // raw_content.addAll(add_int(value.length(), new ArrayList<>()));
-                // raw_content.addAll(add_string(value, new ArrayList<>()));
-                // need to add s?
-                raw_content = add_int(values[i].length(), raw_content);
-                raw_content = add_string(values[i], raw_content);
-            }
-            // ints NOT preceded by length
-            else if (param_type == Constants.INT_ID) {
-                // raw_content.addAll(add_int(Integer.parseInt(values[i]), new ArrayList<>()));
-                raw_content = add_int(Integer.parseInt(values[i]), raw_content);
+                // Write string length followed by string bytes
+                byte[] stringBytes = ((String) values[i]).getBytes(StandardCharsets.UTF_8);
+                buffer.putInt(stringBytes.length);
+                buffer.put(stringBytes);
+            } else if (param_type == Constants.INT_ID) {
+                // Indicate integer type and write the integer
+                // buffer.putInt((Integer) values[i]);
+                int parsed = Integer.parseInt(values[i]); 
+                System.out.println("Parsed integer " + parsed);
+                buffer.putInt(parsed);
+            } else {
+                // Handle other types or throw an exception
+                throw new IllegalArgumentException("Unsupported argument type: " );
             }
         }
-        System.out.println(raw_content);
-        return raw_content;
+
+        buffer.flip();
+        
+
+        while (buffer.hasRemaining()) {
+            raw_content.add(buffer.get());
+        }
+
+        System.out.println("raw content" + raw_content);
+        List<List<Byte>> listOfLists = new ArrayList<>();
+        listOfLists.add(raw_content); // Add raw_content as the only element in the list
+        return listOfLists;
     }
     private static char sidToChar(int sid){ 
         switch (sid) {
@@ -311,73 +332,74 @@ public class Util {
         } 
     }
 
-    private static List<List<Byte>> marshall_to_packets(int service_id, int request_id, List<Byte> raw_content) {
-        int raw_content_size = raw_content.size();
-        List<List<Byte>> message = new ArrayList<>();
-        ByteBuffer  buffer = ByteBuffer.allocate(12 +raw_content_size);
+    // private static List<List<Byte>> marshall_to_packets(int service_id, int request_id, List<Byte> raw_content) {
+    //     int raw_content_size = raw_content.size();
+    //     List<List<Byte>> message = new ArrayList<>();
+    //     ByteBuffer  buffer = ByteBuffer.allocate(12 +raw_content_size);
         
-        System.out.println(service_id);
-        String serviceIdString = String.valueOf(service_id);
-        char[] chars = serviceIdString.toCharArray();
-        for (char c : chars) {
-            buffer.put((byte) c);
-        }
-        char sid = sidToChar(service_id);
-        buffer.putChar(sid); 
-        buffer.putInt(request_id); 
-
-        byte[] rawContentArray = new byte[raw_content_size];
-        for (int i = 0; i < raw_content.size(); i++) {
-            rawContentArray[i] = raw_content.get(i);
-        }
-        buffer.put(rawContentArray); 
-        // buffer is flipped to prepare for reading 
-        buffer.flip();
-        int total_packets = (int) Math.ceil(raw_content_size * 1.0 / Constants.MAX_PACKET_CONTENT_SIZE);
-        // List<List<Byte>> message = new ArrayList<>();
-        // for (int fragment = 0; fragment < total_packets; fragment++) {
-        //     List<Byte> packet = new ArrayList<>();
-        //     // packet = add_int(request_id, packet);
-        //     packet = add_int(raw_content_size, packet);
-        //     packet = add_int(fragment, packet);
-        //     int begin_index = fragment * Constants.MAX_PACKET_CONTENT_SIZE;
-        //     int end_index;
-        //     if (fragment == total_packets - 1) {
-        //         end_index = raw_content_size;
-        //     }
-        //     else {
-        //         end_index = (fragment+1) * Constants.MAX_PACKET_CONTENT_SIZE;
-        //     }
-        //     packet.addAll(raw_content.subList(begin_index, end_index));
-        //     message.add(packet);
-        // }
-        if (total_packets==1){ 
-            byte[] bytes = buffer.array(); 
-            List<Byte> packet = new ArrayList<>(); 
-            for(byte b :bytes){ 
-                packet.add(b); 
-            }
-            message.add(packet); 
-        } else { 
-            System.out.println("More than 1 Packet required increase max packet size");
-        }
+    //     System.out.println(service_id);
+    //     String serviceIdString = String.valueOf(service_id);
+    //     char[] chars = serviceIdString.toCharArray();
+    //     for (char c : chars) {
+    //         buffer.put((byte) c);
+    //     }
+    //     char sid = sidToChar(service_id);
+    //     buffer.putChar(sid); 
+    //     buffer.putInt(request_id); 
         
-        return message;
-    }
 
-    // big-endian
-    private static List<Byte> add_int(int num, List<Byte> in) {
-        byte[] bytes = new byte[4];
-        for (int i = 0; i < 4; i++) {
-            bytes[4-i-1] = (byte) (num >>> (i*8));
-        }
-        return add_byte_array(in, bytes);
-    }
+    //     byte[] rawContentArray = new byte[raw_content_size];
+    //     for (int i = 0; i < raw_content.size(); i++) {
+    //         rawContentArray[i] = raw_content.get(i);
+    //     }
+    //     buffer.put(rawContentArray); 
+    //     // buffer is flipped to prepare for reading 
+    //     buffer.flip();
+    //     int total_packets = (int) Math.ceil(raw_content_size * 1.0 / Constants.MAX_PACKET_CONTENT_SIZE);
+    //     // List<List<Byte>> message = new ArrayList<>();
+    //     // for (int fragment = 0; fragment < total_packets; fragment++) {
+    //     //     List<Byte> packet = new ArrayList<>();
+    //     //     // packet = add_int(request_id, packet);
+    //     //     packet = add_int(raw_content_size, packet);
+    //     //     packet = add_int(fragment, packet);
+    //     //     int begin_index = fragment * Constants.MAX_PACKET_CONTENT_SIZE;
+    //     //     int end_index;
+    //     //     if (fragment == total_packets - 1) {
+    //     //         end_index = raw_content_size;
+    //     //     }
+    //     //     else {
+    //     //         end_index = (fragment+1) * Constants.MAX_PACKET_CONTENT_SIZE;
+    //     //     }
+    //     //     packet.addAll(raw_content.subList(begin_index, end_index));
+    //     //     message.add(packet);
+    //     // }
+    //     if (total_packets==1){ 
+    //         byte[] bytes = buffer.array(); 
+    //         List<Byte> packet = new ArrayList<>(); 
+    //         for(byte b :bytes){ 
+    //             packet.add(b); 
+    //         }
+    //         message.add(packet); 
+    //     } else { 
+    //         System.out.println("More than 1 Packet required increase max packet size");
+    //     }
+        
+    //     return message;
+    // }
 
-    private static List<Byte> add_string(String str, List<Byte> in) {
-        byte[] bytes = str.getBytes();
-        return add_byte_array(in, bytes);
-    }
+    // // big-endian
+    // private static List<Byte> add_int(int num, List<Byte> in) {
+    //     byte[] bytes = new byte[4];
+    //     for (int i = 0; i < 4; i++) {
+    //         bytes[4-i-1] = (byte) (num >>> (i*8));
+    //     }
+    //     return add_byte_array(in, bytes);
+    // }
+
+    // private static List<Byte> add_string(String str, List<Byte> in) {
+    //     byte[] bytes = str.getBytes();
+    //     return add_byte_array(in, bytes);
+    // }
 
     private static List<Byte> add_byte_array(List<Byte> in, byte[] add) {
         for (byte b : add) {

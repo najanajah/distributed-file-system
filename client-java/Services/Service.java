@@ -85,7 +85,7 @@ public abstract class Service {
      * @throws ApplicationException BadPathnameException, BadRangeException, FileEmptyException
      */
     public Map<String, Object> send_and_receive(String[] values) throws IOException, ApplicationException {
-        
+        System.out.println(service_id);
         return Util.send_and_receive(service_id, values, connection);
     }
 

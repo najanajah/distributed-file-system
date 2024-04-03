@@ -40,7 +40,7 @@ public class Connection {
      */
     public Connection(Scanner s, String s_name, int s_port, int amo, double nfr, int f_interval)
             throws UnknownHostException, SocketException {
-        socket = new DatagramSocket();
+        socket = new DatagramSocket(2222);
         scanner = s;
         server_port = s_port;
         host = InetAddress.getByName(s_name);

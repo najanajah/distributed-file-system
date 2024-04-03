@@ -32,13 +32,7 @@ public class Main {
         }
 
         System.out.println("Welcome!");
-        System.out.println("Checking if the Server is reachable...");
-        boolean isReachable = isReachable(initial_input[0] , Integer.parseInt(initial_input[1]));
-        if (isReachable) {
-            System.out.println("The IP address " + initial_input[0]  + " and port " + Integer.parseInt(initial_input[1]) + " are reachable.");
-        } else {
-            System.out.println("The IP address " + initial_input[0]  + " and port " + Integer.parseInt(initial_input[1]) + " are not reachable.");
-        }
+    
         while (true) {
             System.out.println(Constants.SERVICE_PROMPT);
             int input = Integer.parseInt(connection.scanner.nextLine());
@@ -53,17 +47,6 @@ public class Main {
         }
         connection.close();
         System.out.println("Goodbye!");
-    }
-
-    public static boolean isReachable(String ipAddress, int port) {
-        try (Socket socket = new Socket()) {
-            // Attempt to connect to the IP address and port
-            socket.connect(new InetSocketAddress(ipAddress, port), 1000); // Timeout set to 1 second
-            return true; // If connection is successful, return true
-        } catch (IOException e) {
-            // Connection failed
-            return false;
-        }
     }
 
 }
