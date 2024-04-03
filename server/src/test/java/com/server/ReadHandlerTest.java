@@ -1,8 +1,8 @@
 package com.server;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,7 +13,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
 import java.util.*;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,7 +27,7 @@ public class ReadHandlerTest {
     String contents = "Test Reading";
 
 
-    @Before
+    @BeforeAll
     public void setUp() throws IOException, InterruptedException{
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
@@ -47,7 +46,6 @@ public class ReadHandlerTest {
         bw.close();
 
     }
-
 
     @Test
     public void test() throws Exception {

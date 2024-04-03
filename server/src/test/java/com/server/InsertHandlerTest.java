@@ -1,20 +1,20 @@
 package com.server;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +30,7 @@ public class InsertHandlerTest {
     private String insertedContent = "Stop ";
 
 
-    @Before
+    @BeforeAll
     public void setUp() throws IOException, InterruptedException{
         serverThread = new Thread(() -> new Server(port).start());
         serverThread.start();
