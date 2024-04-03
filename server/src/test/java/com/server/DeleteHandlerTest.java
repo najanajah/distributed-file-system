@@ -12,20 +12,18 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DuplicateHandlerTest {
+class DeleteHandlerTest {
     private static Thread serverThread = null;
-    private static File destinationFile = null;
-    private static File sourceFile = null;
-
-    private static final String sourcePath = "test/source.txt";
-    private static final String destinationPath = "test/destination.txt";
-
-    private static final int port = 8872;
-    private static final String contents = "Test File Renaming";
+    private static File file = null;
+    private static final String filePath = "test/delete.txt";
+    private static final int port = 3456;
+    private static final String contents = "Test Deleting";
 
     @BeforeAll
     public static void setUp() throws IOException, InterruptedException{
@@ -34,30 +32,24 @@ class DuplicateHandlerTest {
 
         Thread.sleep(2000);
         //Create the test file
-        sourceFile = Paths.get(sourcePath).toFile();
-
-        if (!sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
-
-        if(sourceFile.exists()) sourceFile.delete();
-        sourceFile.createNewFile();
+        file = Paths.get(filePath).toFile();
+        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if(file.exists()) file.delete();
+        file.createNewFile();
 
         //Write the contents
-        BufferedWriter bw = new BufferedWriter(new FileWriter(sourceFile));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
         bw.write(contents);
         bw.close();
-
-        destinationFile = Paths.get(destinationPath).toFile();
-        destinationFile.delete();
     }
 
     @Test
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = '5';
-        int requestId = 1;
-        p.add(sourcePath);
-        p.add(destinationPath);
+        char requestType = '4';
+        int requestId = 9999;
+        p.add(filePath);
 
         byte[] b = Util.marshal(requestType, requestId, p);
 
@@ -82,25 +74,14 @@ class DuplicateHandlerTest {
         assertEquals(1, (int) response.get(2));
         assertNotNull(response.get(3));
 
-        File sourceFile = Paths.get(sourcePath).toFile();
-        File destinationFile = Paths.get(destinationPath).toFile();
-        assertTrue(sourceFile.exists());
-        assertTrue(destinationFile.exists());
-
-        Scanner fileScanner = new Scanner(destinationFile);
-        String content = fileScanner.useDelimiter("\\Z").next();
-        fileScanner.close();
-
-        assertEquals(content, contents);
+        File sourceFile = Paths.get(filePath).toFile();
+        assertFalse(sourceFile.exists());
     }
 
     @AfterAll
     public static void tearDown(){
         serverThread.interrupt();
-        destinationFile.delete();
-        sourceFile.delete();
+        file.delete();
     }
 
 }
-
-

@@ -18,9 +18,6 @@ public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
     public static int lostReplyCount = 0;
     public static int replyDelaySec = 0;
-    private static final int MESSAGE_TYPE_SIZE = 1;
-    private static final int REQUEST_ID_SIZE = 4;
-
 
 
     /**
@@ -58,7 +55,6 @@ public class Util {
 
 
     public static String invalidPathMsg(String path) {
-        // TODO Auto-generated method stub
         return "Invalid Path " + path;
     }
 
@@ -74,14 +70,14 @@ public class Util {
     public static boolean sendPacket(InetAddress address,int port, char messageType, int requestId, List<Object> response){
         try(DatagramSocket dgs = new DatagramSocket()){
             byte[] data = marshal(messageType, requestId, response);
-            DatagramPacket request = new DatagramPacket(data, data.length, address, port);
+            DatagramPacket reply = new DatagramPacket(data, data.length, address, port);
 
             if(lostReplyCount > 0){
                 lostReplyCount--;
                 logger.info("(Lost)Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }else{
                 Thread.sleep(replyDelaySec * 1000L);
-                dgs.send(request);
+                dgs.send(reply);
                 logger.info("Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }
 
@@ -127,10 +123,8 @@ public class Util {
                 buffer.put(stringBytes);
             } else if (arg instanceof Integer) {
                 // Indicate integer type and write the integer
-                buffer.put((byte) 'i');
                 buffer.putInt((Integer) arg);
             } else if (arg instanceof Long) {
-                buffer.put((byte) 'l');
                 buffer.putLong((Long) arg);
             } else {
                 // Handle other types or throw an exception
@@ -174,7 +168,8 @@ public class Util {
                 case '3': // monitor
                     Collections.addAll(request, readString(buffer), readLong(buffer), readInt(buffer));
                     break;
-                case '4': // get metadata
+                case '4': // get delete
+                case '6': // get modificationTime
                     Collections.addAll(request, readString(buffer));
                     break;
                 case '5': // duplicate
@@ -191,7 +186,7 @@ public class Util {
     }
 
 
-    private static String readString(ByteBuffer buffer) {
+    public static String readString(ByteBuffer buffer) {
         try {
             int filePathLen = buffer.getInt();
             // Check for negative length or length longer than remaining buffer

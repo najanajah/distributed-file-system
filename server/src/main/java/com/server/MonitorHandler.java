@@ -124,6 +124,7 @@ public class MonitorHandler implements RequestHandler {
 //        reply.put("end", expiration);
 //        reply.put("message", "Monitoring File " + filePath + " Started.");
         List<Object> reply = new ArrayList<>();
+        reply.add(1);
         reply.add("Monitoring File " + filePath + " Started.");
         logger.exit();
         return reply;

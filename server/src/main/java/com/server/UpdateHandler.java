@@ -2,6 +2,7 @@ package com.server;
 
 import java.net.InetAddress;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +33,7 @@ public class UpdateHandler implements RequestHandler {
 //Pass the request to next request handlers in the chain
         List<Object> nextReply = this.nextRqHdler.handleRequest(request, client);
 
-        int code = (Integer)nextReply.get(0);
+        int code = (int) nextReply.get(0);
         if(code == 0){
             //If operation fails (Code=0), just return response. No callback message.
             return nextReply;
@@ -50,6 +51,8 @@ public class UpdateHandler implements RequestHandler {
         char requestType = (char) request.get(0);
         int requestId = (Integer) request.get(1);
         String filePath = (String) request.get(2);
+
+        System.out.println("filePath to be callback: " + filePath);
 
         //Retrieve and validate parameters
 //        List<String> missingFields = new LinkedList<String>();
@@ -89,28 +92,28 @@ public class UpdateHandler implements RequestHandler {
 //Retrieve the records of main.java.com.server.MonitoringClientInfo for that file
 //For each record, if the current time has not exceeded its monitoring expiration time
         //Construct the callback message with newly updated file contents, modifier and other info
-        Set<RegisteredClient> clientInfos = this.monitoringInfo.get(filePath);
-        if(clientInfos != null){
-            for(RegisteredClient clientInfo: clientInfos){
+        Set<RegisteredClient> registeredClients = this.monitoringInfo.get(Paths.get(filePath));
+        if(registeredClients != null){
+            for(RegisteredClient clientInfo: registeredClients){
                 InetAddress clientAddr = clientInfo.getClientAddr();
                 int clientPort = clientInfo.getClientPort();
                 long expiration = clientInfo.getExpiration();
 
+                System.out.println(System.currentTimeMillis() < expiration);
+                System.out.println(System.currentTimeMillis());
+
                 if(System.currentTimeMillis() < expiration){
-                    List<Object> callbackMsg = new ArrayList<>();
+                    List<Object> callbackMsg = nextReply;
 //                    callbackMsg.put("status"	, Integer.valueOf(1));
 //                    callbackMsg.put("time", modificationTime);
 //                    callbackMsg.put("path", filePath);
 //                    callbackMsg.put("modifier", client.getHostAddress());
 //                    callbackMsg.put("content", content);
-                    callbackMsg.add(content);
-                    Util.sendPacket(clientAddr, clientPort, requestType, requestId, callbackMsg);
+                    Util.sendPacket(clientAddr, clientPort, requestType, requestId, nextReply);
                 }
             }
         }
 //////////////////////////////////////////////////////////////
-
-
 
         logger.exit();
         return nextReply;
