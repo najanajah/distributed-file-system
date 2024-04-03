@@ -6,13 +6,13 @@ import java.util.Map;
 import Exceptions.ApplicationException;
 import Exceptions.BadPathnameException;
 import Exceptions.BadRangeException;
-import Helpers.CacheObject;
+import Helpers.CacheEntry;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 
 public class Write extends Service {
 
-    public Write(Runner r) {
+    public Write(Connection r) {
         super(r);
         service_id = Constants.WRITE_ID;
     }
@@ -27,15 +27,15 @@ public class Write extends Service {
          
         try {
             // place a new CacheObject if it didn't exist before
-            if (!runner.cache.containsKey(pathname)) {
-                runner.cache.put(pathname, new CacheObject(pathname, runner));
+            if (!connection.cache.containsKey(pathname)) {
+                connection.cache.put(pathname, new CacheEntry(pathname, connection));
             }
             
             
-            CacheObject cache_object = runner.cache.get(pathname);
+            CacheEntry cache_object = connection.cache.get(pathname);
             // Get freshness 
             // Gets from server if cache is not fresh 
-            if (cache_object.must_read_server(offset, Integer.MAX_VALUE, runner)) {
+            if (cache_object.must_read_server(offset, Integer.MAX_VALUE, connection)) {
                 String byte_count = Integer.toString(Integer.MAX_VALUE);
                 String[] read_request = {pathname, "0" , byte_count};
                 Map<String, Object> reply = send_and_receive(read_request);
@@ -48,7 +48,7 @@ public class Write extends Service {
 
             StringBuilder updatedContent = new StringBuilder(currentContent);
             updatedContent.insert(offset, content);
-            
+
             // update cache 
             cache_object.set_cache(0, updatedContent.length(), updatedContent.toString());
             

@@ -2,7 +2,7 @@ package Services;
 
 import Exceptions.ApplicationException;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 import Helpers.Util;
 import javafx.util.Pair;
 
@@ -16,11 +16,11 @@ import java.util.Map;
  */
 public abstract class Service {
 
-    public Runner runner;
+    public Connection connection;
     public int service_id;
 
-    public Service(Runner r) {
-        runner = r;
+    public Service(Connection r) {
+        connection = r;
     }
 
     /** Perform the service
@@ -45,7 +45,7 @@ public abstract class Service {
      * @param r connection info
      * @return the requested Service
      */
-    public static Service generate_service(int service_id, Runner r) {
+    public static Service generate_service(int service_id, Connection r) {
         if (service_id == Constants.READ_ID) {
             return new Read(r);
         }
@@ -86,7 +86,7 @@ public abstract class Service {
      */
     public Map<String, Object> send_and_receive(String[] values) throws IOException, ApplicationException {
         
-        return Util.send_and_receive(service_id, values, runner);
+        return Util.send_and_receive(service_id, values, connection);
     }
 
     /** Gets values required to perform Service from user
@@ -99,7 +99,7 @@ public abstract class Service {
             Pair<String, Integer> p = params.get(i);
             String prompt =  "Please enter the " + p.getKey() + ": ";
             System.out.println(prompt);
-            ret[i] = runner.scanner.nextLine();
+            ret[i] = connection.scanner.nextLine();
         }
         return ret;
     }

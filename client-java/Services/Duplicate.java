@@ -6,13 +6,13 @@ import java.util.Map;
 import Exceptions.ApplicationException;
 import Exceptions.BadPathnameException;
 import Exceptions.BadRangeException;
-import Helpers.CacheObject;
+import Helpers.CacheEntry;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 
 public class Duplicate extends Service{
 
-    public Duplicate(Runner r) {
+    public Duplicate(Connection r) {
         super(r);
         service_id = Constants.DUPLICATE_FILE_ID;
     }
@@ -25,10 +25,10 @@ public class Duplicate extends Service{
         String destination = request_values[1];
         try {
             // place a new CacheObject if it didn't exist before
-            if (!runner.cache.containsKey(pathname)) {
-                runner.cache.put(pathname, new CacheObject(pathname, runner));
+            if (!connection.cache.containsKey(pathname)) {
+                connection.cache.put(pathname, new CacheEntry(pathname, connection));
             }
-            // CacheObject cache_object = runner.cache.get(pathname);
+            // CacheObject cache_object = connection.cache.get(pathname);
             // // only read from the server if we must
             // int offset=0; 
             // int byte_count=0; 
@@ -37,7 +37,7 @@ public class Duplicate extends Service{
             Map<String, Object> reply = send_and_receive(request_values);
 
             // Create duplicate file in the cache 
-            runner.cache.put(destination, new CacheObject(destination, runner));
+            connection.cache.put(destination, new CacheEntry(destination, connection));
             System.out.println("Content:");
             System.out.println(reply.get("content"));
             System.out.println("Done.");

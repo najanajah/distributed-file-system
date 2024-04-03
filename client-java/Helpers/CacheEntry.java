@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Holds information for storing read content in the cache
  */
-public class CacheObject {
+public class CacheEntry {
 
     private String pathname;
     // the last time we checked in with the server
@@ -25,14 +25,14 @@ public class CacheObject {
 
     /** Set the pathname, server_checkin_time, and last_known_edit time
      * @param pn pathname
-     * @param runner connection info
+     * @param connection connection info
      * @throws IOException sending/receiving message
      * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
      */
-    public CacheObject(String pn, Runner runner) throws IOException, BadPathnameException {
+    public CacheEntry(String pn, Connection connection) throws IOException, BadPathnameException {
         pathname = pn;
         // also sets server_checkin_time
-        last_known_edit_time = get_server_edit_time(runner);
+        last_known_edit_time = get_server_edit_time(connection);
         content = new HashMap<>();
         final_block = -1;
     }
@@ -90,14 +90,14 @@ public class CacheObject {
      * 2. if it is cached locally, expired the freshness interval, and has been edited at the server
      * @param offset file offset
      * @param byte_count number of bytes to read
-     * @param runner connection info
+     * @param connection connection info
      * @return whether or not one must read the server
      * @throws IOException send/receive message
      * @throws BadPathnameException if requesting edit time at server yields bad pathname
      * @throws BadRangeException if the given offset/byte_count combo is certain to be out of range
      */
-    public boolean must_read_server(int offset, int byte_count, Runner runner) throws IOException, BadPathnameException, BadRangeException {
-        boolean must = !cached(offset, byte_count) || (!local_fresh(runner.freshness_interval) && !server_fresh(runner));
+    public boolean must_read_server(int offset, int byte_count, Connection connection) throws IOException, BadPathnameException, BadRangeException {
+        boolean must = !cached(offset, byte_count) || (!local_fresh(connection.freshness_interval) && !server_fresh(connection));
         if (Constants.DEBUG) {
             if (must) {
                 System.out.println ("(log) Must read from server");
@@ -150,13 +150,13 @@ public class CacheObject {
 
     /** Whether the last update time at the server matches our last known edit time
      * If it doesn't match, then we must clear the cache (as it is now out of date)
-     * @param runner connection info
+     * @param connection connection info
      * @return match?
      * @throws IOException send/receive messages
      * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
      */
-    private boolean server_fresh(Runner runner) throws IOException, BadPathnameException {
-        int last_edit_time = get_server_edit_time(runner);
+    private boolean server_fresh(Connection connection) throws IOException, BadPathnameException {
+        int last_edit_time = get_server_edit_time(connection);
         if (Constants.DEBUG) System.out.println("(log) Checking server: our last known edit time is " + last_known_edit_time +
                 " and the server's last edit time is " + last_edit_time);
         if (last_known_edit_time == last_edit_time) {
@@ -174,17 +174,17 @@ public class CacheObject {
 
     /** Get the time of the server's last update
      * automatically update server_checkin_time
-     * @param runner connection info
+     * @param connection connection info
      * @return the time
      * @throws IOException send/receive messages
      * @throws BadPathnameException if requesting the edit time at the server yields bad pathname
      */
-    private int get_server_edit_time(Runner runner) throws IOException, BadPathnameException {
+    private int get_server_edit_time(Connection connection) throws IOException, BadPathnameException {
         server_checkin_time = System.currentTimeMillis();
 
         String[] request_values = {pathname};
         try {
-            Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, runner);
+            Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
             // changed from time to -> content generalise across replies 
             return (int) reply.get("content");
         }

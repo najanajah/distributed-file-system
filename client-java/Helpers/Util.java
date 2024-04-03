@@ -19,25 +19,25 @@ public class Util {
     /** Sending and receiving a message for a specific service
      * @param service_id the service to be performed
      * @param values parameter values
-     * @param runner server connection info
+     * @param connection server connection info
      * @return the reply from the server, in a Map
      * @throws IOException from sending/receiving packet
      * @throws ApplicationException BadPathnameException, BadRangeException, FilEmptyException
      */
-    public static Map<String, Object> send_and_receive(int service_id, String[] values, Runner runner) throws IOException, ApplicationException {
+    public static Map<String, Object> send_and_receive(int service_id, String[] values, Connection connection) throws IOException, ApplicationException {
         if (Constants.DEBUG) System.out.println("(log) Begin send/receive for service id " + service_id + ":");
-        runner.socket.setSoTimeout(Constants.TIMEOUT);
+        connection.socket.setSoTimeout(Constants.TIMEOUT);
         List<Byte> reply_content;
-        List<List<Byte>> request = Util.marshall(runner.get_request_id(), service_id, values);
-        Util.send_message(request, runner);
+        List<List<Byte>> request = Util.marshall(connection.get_request_id(), service_id, values);
+        Util.send_message(request, connection);
         while(true) {
             try {
-                reply_content = Util.receive_message(runner.get_request_id(), runner);
+                reply_content = Util.receive_message(connection.get_request_id(), connection);
                 break;
             }
             catch (SocketTimeoutException t) {
                 if (Constants.DEBUG) System.out.println("(log) Socket timeout; Resending message");
-                Util.send_message(request, runner);
+                Util.send_message(request, connection);
             }
             catch (CorruptMessageException c) {
                 if (Constants.DEBUG) System.out.println("(log) Throwing away corrupt message");
@@ -49,14 +49,14 @@ public class Util {
             return reply;
         }
         finally {
-            if (runner.at_most_once) {
+            if (connection.at_most_once) {
                 // upon receiving, send acknowledgment
                 System.out.print("(acknowledgment) ");
-                List<List<Byte>> ack = Util.marshall(runner.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
-                Util.send_message(ack, runner);
+                List<List<Byte>> ack = Util.marshall(connection.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
+                Util.send_message(ack, connection);
             }
             if (Constants.DEBUG) System.out.println("(log) Finished send/receive for service id " + service_id + ".");
-            runner.increment_request_id();
+            connection.increment_request_id();
         }
 
     }
@@ -78,28 +78,28 @@ public class Util {
      * @param message message to be sent
      * @throws IOException from sending packet
      */
-    public static void send_message(List<List<Byte>> message, Runner runner) throws IOException{
+    public static void send_message(List<List<Byte>> message, Connection connection) throws IOException{
         for (List<Byte> packet : message) {
-            runner.send_packet(packet);
+            connection.send_packet(packet);
         }
         if (Constants.DEBUG) System.out.println("(log) Message sent");
     }
 
     /**Receive an entire message (which could contain many packets)
      * @param check_request_id check received request ids against this one
-     * @param runner server connection info
+     * @param connection server connection info
      * @return the content portion of the message
      * @throws IOException from socket receive
      */
 
-    public static List<Byte> receive_message(int check_request_id, Runner runner) throws IOException, CorruptMessageException {
+    public static List<Byte> receive_message(int check_request_id, Connection connection) throws IOException, CorruptMessageException {
 
         // int total_packets = -1;
         List<Byte> all_content = new ArrayList<>();
         // int current_packet = 0;
         int overall_content_size = 0;
         // while (total_packets == -1 || current_packet != total_packets) {
-            byte[] packet = runner.receive_packet();
+            byte[] packet = connection.receive_packet();
             int[] header = get_header(packet);
             int receive_request_id = header[1];
             // overall_content_size = header[1];
@@ -108,12 +108,12 @@ public class Util {
             //     throw new CorruptMessageException();
             // }
             // (hacky) blindly acknowledge old replies
-            if (runner.at_most_once && receive_request_id < check_request_id) {
-            // if (runner.at_most_once){  
+            if (connection.at_most_once && receive_request_id < check_request_id) {
+            // if (connection.at_most_once){  
                 // send acknowledgment
                 if (Constants.DEBUG) System.out.println("(log) Blindly acknowledging old request id " + check_request_id);
                 List<List<Byte>> ack = Util.marshall(0, Constants.ACKNOWLEDGMENT_ID, new String[0]);
-                Util.send_message(ack, runner);
+                Util.send_message(ack, connection);
                 // current_packet--;
                 // total_packets = -1;
             }

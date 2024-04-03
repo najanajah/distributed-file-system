@@ -2,16 +2,16 @@ package Services;
 
 import Exceptions.ApplicationException;
 import Exceptions.BadPathnameException;
-import Helpers.CacheObject;
+import Helpers.CacheEntry;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 
 import java.io.IOException;
 import java.util.Map;
 
 public class Read extends  Service {
 
-    public Read(Runner r) {
+    public Read(Connection r) {
         super(r);
         service_id = Constants.READ_ID;
     }
@@ -30,14 +30,14 @@ public class Read extends  Service {
 
         try {
             // place a new CacheObject if it didn't exist before
-            if (!runner.cache.containsKey(pathname)) {
-                runner.cache.put(pathname, new CacheObject(pathname, runner));
+            if (!connection.cache.containsKey(pathname)) {
+                connection.cache.put(pathname, new CacheEntry(pathname, connection));
             }
 
-            CacheObject cache_object = runner.cache.get(pathname);
+            CacheEntry cache_object = connection.cache.get(pathname);
             // only read from the server if we must
 
-            if (cache_object.must_read_server(offset, byte_count, runner)) {
+            if (cache_object.must_read_server(offset, byte_count, connection)) {
                 Map<String, Object> reply = send_and_receive(request_values);
                 cache_object.set_cache(offset, byte_count, (String) reply.get("content"));
             }
@@ -49,8 +49,8 @@ public class Read extends  Service {
             System.out.println("Done.");
         }
         catch(BadPathnameException bpe) {
-            if (runner.cache.containsKey(pathname)) {
-                runner.cache.remove(pathname);
+            if (connection.cache.containsKey(pathname)) {
+                connection.cache.remove(pathname);
             }
             System.out.println("Error: " + bpe.getMessage() + ".");
         }

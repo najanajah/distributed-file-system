@@ -10,14 +10,20 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Holds server connection info, as well as anything that remains across multiple calls to services
+ * Connection Driver for Client. 
+ * Establishes a UDP connect to server. 
+ * Stores Server IP, Port, HashMap containing Cache Entries
+ * Takes 3 variables on creation 
+ * freshness interval - Used to determine the cache updates 
+ * at_most_once - Used to demonstrate semantics 
+ * network_failure_rate - Used to demonstrate network failure.
  */
-public class Runner {
+public class Connection {
 
     public Scanner scanner;
     public InetAddress host;
     public DatagramSocket socket;
-    public HashMap<String, CacheObject> cache;
+    public HashMap<String, CacheEntry> cache;
 
     private int server_port;
     private int request_id = 0;
@@ -32,7 +38,7 @@ public class Runner {
      * @throws UnknownHostException
      * @throws SocketException
      */
-    public Runner(Scanner s, String s_name, int s_port, int amo, double nfr, int f_interval)
+    public Connection(Scanner s, String s_name, int s_port, int amo, double nfr, int f_interval)
             throws UnknownHostException, SocketException {
         socket = new DatagramSocket();
         scanner = s;
@@ -46,7 +52,7 @@ public class Runner {
         List<Byte> packet = new ArrayList<>();
         packet.add((byte) 0);
         try {send_packet(packet);
-        System.out.println("connection success");}
+        System.out.println("connection suc");}
         catch( IOException e){ 
             System.out.println("Error while testing connection e");
         }

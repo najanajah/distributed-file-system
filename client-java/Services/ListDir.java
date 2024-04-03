@@ -2,14 +2,14 @@ package Services;
 
 import Exceptions.ApplicationException;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 
 import java.io.IOException;
 import java.util.Map;
 
 public class ListDir extends Service {
 
-    public ListDir(Runner r) {
+    public ListDir(Connection r) {
         super(r);
         service_id = Constants.LIST_ID;
     }

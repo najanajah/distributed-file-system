@@ -8,11 +8,11 @@ import Exceptions.BadPathnameException;
 import Exceptions.BadRangeException;
 // import Helpers.CacheObject;
 import Helpers.Constants;
-import Helpers.Runner;
+import Helpers.Connection;
 
 public class Remove extends Service {
 
-    public Remove(Runner r) {
+    public Remove(Connection r) {
         super(r);
         service_id = Constants.REMOVE_FILE_ID;
     }
@@ -25,8 +25,8 @@ public class Remove extends Service {
             // Send directly to server since file must be deleted 
             Map<String, Object> reply = send_and_receive(request_values);
             //  remove key if in cache 
-            if (runner.cache.containsKey(pathname)) {
-                runner.cache.remove(pathname);
+            if (connection.cache.containsKey(pathname)) {
+                connection.cache.remove(pathname);
             }
 
             System.out.println("Content:");
