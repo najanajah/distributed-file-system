@@ -166,7 +166,7 @@ public class Server {
 //            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
 //            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
-//            this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
+            this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
 //            this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;
