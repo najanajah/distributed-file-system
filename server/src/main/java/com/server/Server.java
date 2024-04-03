@@ -142,34 +142,34 @@ public class Server {
      */
     private  void configureRequestHandler(){
         logger.entry();
-        Map<String,Map<String,Object>> cachedReply = new HashMap<>();
-        Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
+        List<Object> cachedReply = new ArrayList<>();
+//        Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
 
-        RequestHandler modTimeHandler = new ModificationTimeHandler();
+//        RequestHandler modTimeHandler = new ModificationTimeHandler();
         RequestHandler readHandler = new ReadHandler();
-        RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
-        RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
-        RequestHandler renameHandler = new RenameHandler();
-        RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
+//        RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
+//        RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
+//        RequestHandler renameHandler = new RenameHandler();
+//        RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
         RequestHandler duplicateHandler = new DuplicateHandler();
         RequestHandler deleteHandler = new DeleteHandler();
 
         if(this.semantics == AT_MOST_ONCE.getValue()){
-            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
+//            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
-            this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
-            this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
-            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
-            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
+//            this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
+//            this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
+//            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
+//            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
             this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
-            this.modTimeHandler =  modTimeHandler;
+//            this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;
             this.insertHandler = insertHandler;
             this.monitorHandler = monitorHandler;
-            this.renameHandler = renameHandler;
-            this.appendHandler = appendHandler;
+//            this.renameHandler = renameHandler;
+//            this.appendHandler = appendHandler;
             this.duplicateHandler = duplicateHandler;
             this.deleteHandler = deleteHandler;
         }else{
