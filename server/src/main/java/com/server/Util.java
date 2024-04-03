@@ -18,9 +18,6 @@ public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
     public static int lostReplyCount = 0;
     public static int replyDelaySec = 0;
-    private static final int MESSAGE_TYPE_SIZE = 1;
-    private static final int REQUEST_ID_SIZE = 4;
-
 
 
     /**
@@ -35,30 +32,29 @@ public class Util {
 
     //////////////////////////////////////////////////////////////
 //Construct reply messages for failed operation
-    public static String inconsistentReqCodeMsg(String req,int code){
-        return "Internal main.java.com.server.Server error: the code for "
-                + req + " request shall NOT be " + code + ".";
-    }
+//    public static String inconsistentReqCodeMsg(String req,int code){
+//        return "Internal main.java.com.server.Server error: the code for "
+//                + req + " request shall NOT be " + code + ".";
+//    }
 
-    public static String inconsistentFieldTypeMsg(String field,String type){
-        return "Field " + field + " shall be a type of " + type + ".";
-    }
+//    public static String inconsistentFieldTypeMsg(String field,String type){
+//        return "Field " + field + " shall be a type of " + type + ".";
+//    }
 
-    public static String missingFieldMsg(List<String> fields){
-        StringBuilder sb = new StringBuilder("Missing field ");
-        for(String f:fields){
-            sb.append(f).append(",");
-        }
-        return sb.toString();
-    }
+//    public static String missingFieldMsg(List<String> fields){
+//        StringBuilder sb = new StringBuilder("Missing field ");
+//        for(String f:fields){
+//            sb.append(f).append(",");
+//        }
+//        return sb.toString();
+//    }
 
-    public static String failUnMarshalMsg(byte[] data){
-        return "Fail to Unmarshal 0x" + DatatypeConverter.printHexBinary(data);
-    }
+//    public static String failUnMarshalMsg(byte[] data){
+//        return "Fail to Unmarshal 0x" + DatatypeConverter.printHexBinary(data);
+//    }
 
 
     public static String invalidPathMsg(String path) {
-        // TODO Auto-generated method stub
         return "Invalid Path " + path;
     }
 
