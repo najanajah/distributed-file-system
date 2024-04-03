@@ -10,11 +10,7 @@ class ListTypeMismatchException extends Exception {
 
 public class ListTypeChecker {
     public static void check(List<Object> list, List<Class<?>> expectedTypes) throws ListTypeMismatchException {
-        if (list.size() != expectedTypes.size()) {
-            throw new ListTypeMismatchException("Number of elements in the list does not match the number of expected types.");
-        }
-
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0; i < expectedTypes.size(); i++) {
             Object obj = list.get(i);
             Class<?> expectedType = expectedTypes.get(i);
             if (!expectedType.isInstance(obj)) {

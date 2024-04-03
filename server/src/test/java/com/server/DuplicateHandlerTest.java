@@ -75,10 +75,12 @@ class DuplicateHandlerTest {
         dgs.receive(reply);
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
 
-        List<Object> response = Util.unmarshal(data);
+        List<Object> response = TestUtil.unmarshalReply(data);
 
-        assertEquals(1, (int) (Integer) response.get(0));
-        assertNotNull(response.get(1));
+        assertEquals(requestType, (char) response.get(0));
+        assertEquals(requestId, (int) response.get(1));
+        assertEquals(1, (int) response.get(2));
+        assertNotNull(response.get(3));
 
         File sourceFile = Paths.get(sourcePath).toFile();
         File destinationFile = Paths.get(destinationPath).toFile();

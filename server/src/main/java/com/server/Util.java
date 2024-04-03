@@ -70,14 +70,14 @@ public class Util {
     public static boolean sendPacket(InetAddress address,int port, char messageType, int requestId, List<Object> response){
         try(DatagramSocket dgs = new DatagramSocket()){
             byte[] data = marshal(messageType, requestId, response);
-            DatagramPacket request = new DatagramPacket(data, data.length, address, port);
+            DatagramPacket reply = new DatagramPacket(data, data.length, address, port);
 
             if(lostReplyCount > 0){
                 lostReplyCount--;
                 logger.info("(Lost)Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }else{
                 Thread.sleep(replyDelaySec * 1000L);
-                dgs.send(request);
+                dgs.send(reply);
                 logger.info("Reply to " + address.toString() + " at port " + port + " contents: " + response);
             }
 
@@ -123,10 +123,8 @@ public class Util {
                 buffer.put(stringBytes);
             } else if (arg instanceof Integer) {
                 // Indicate integer type and write the integer
-                buffer.put((byte) 'i');
                 buffer.putInt((Integer) arg);
             } else if (arg instanceof Long) {
-                buffer.put((byte) 'l');
                 buffer.putLong((Long) arg);
             } else {
                 // Handle other types or throw an exception
@@ -187,7 +185,7 @@ public class Util {
     }
 
 
-    private static String readString(ByteBuffer buffer) {
+    public static String readString(ByteBuffer buffer) {
         try {
             int filePathLen = buffer.getInt();
             // Check for negative length or length longer than remaining buffer
