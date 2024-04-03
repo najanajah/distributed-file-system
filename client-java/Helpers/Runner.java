@@ -4,6 +4,7 @@ import Exceptions.CorruptMessageException;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -41,6 +42,14 @@ public class Runner {
         freshness_interval = f_interval;
         at_most_once = amo == 1;
         network_failure_rate = nfr;
+        // Testing connection 
+        List<Byte> packet = new ArrayList<>();
+        packet.add((byte) 0);
+        try {send_packet(packet);
+        System.out.println("connection success");}
+        catch( IOException e){ 
+            System.out.println("Error while testing connection e");
+        }
     }
 
     /**Send one packet to the server

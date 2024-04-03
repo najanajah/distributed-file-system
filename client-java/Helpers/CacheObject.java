@@ -7,8 +7,8 @@ import Exceptions.BadPathnameException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-// import javafx.util
-// import org.javatuples.Pair;
+
+
 /**
  * Holds information for storing read content in the cache
  */
@@ -185,7 +185,8 @@ public class CacheObject {
         String[] request_values = {pathname};
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, runner);
-            return (int) reply.get("time");
+            // changed from time to -> content generalise across replies 
+            return (int) reply.get("content");
         }
         catch (BadPathnameException nsfe) {
             throw new BadPathnameException();
@@ -202,7 +203,10 @@ public class CacheObject {
     }
 
     private int get_end_block(int offset, int byte_count) {
-        return (int) Math.floor((offset+byte_count) * 1.0 / Constants.FILE_BLOCK_SIZE);
+        if (byte_count == Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE / Constants.FILE_BLOCK_SIZE;
+        }
+        return (int) Math.floor((offset + byte_count) * 1.0 / Constants.FILE_BLOCK_SIZE);
     }
 
     /** Check if the given offset/byte_count combo is certain to be out of range
