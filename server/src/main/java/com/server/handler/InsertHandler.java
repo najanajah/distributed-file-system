@@ -18,7 +18,7 @@ public class InsertHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(InsertHandler.class.getName());
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
 
         //Validate and retrieve parameters
         logger.trace("Entering InsertHandler");

@@ -4,7 +4,6 @@ import com.server.Server;
 import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
-import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,7 @@ class DeleteHandlerTest {
         Thread.sleep(2000);
         //Create the test file
         file = Paths.get(filePath).toFile();
-        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (file.exists()) file.delete();
         file.createNewFile();
 
@@ -52,7 +51,7 @@ class DeleteHandlerTest {
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = RequestCode.DELETE.getValue();
+        char requestType = Constants.REQUEST_CODE_DELETE;
         int requestId = 9999;
         p.add(filePath);
 

@@ -4,7 +4,6 @@ import com.server.Server;
 import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
-import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,7 @@ class DuplicateHandlerTest {
         // create the test file
         sourceFile = Paths.get(sourcePath).toFile();
 
-        if (!sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
+        if (sourceFile.getParentFile() != null && !sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
 
         if (sourceFile.exists()) sourceFile.delete();
         sourceFile.createNewFile();
@@ -63,7 +62,7 @@ class DuplicateHandlerTest {
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = RequestCode.DUPLICATE.getValue();
+        char requestType = Constants.REQUEST_CODE_DUPLICATE;
         int requestId = 1;
         p.add(sourcePath);
         p.add(destinationPath);

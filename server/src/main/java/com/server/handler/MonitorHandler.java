@@ -24,7 +24,7 @@ public class MonitorHandler implements RequestHandler {
     }
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         logger.entry();
         // retrieve and validate parameters
         try {
@@ -37,7 +37,6 @@ public class MonitorHandler implements RequestHandler {
         int requestId = (Integer) request.get(1);
         String filePath = (String) request.get(2);
         Long duration = (Long) request.get(3);
-        int port = (Integer) request.get(4);
 
         Path monitoredPath = Paths.get(filePath);
 
@@ -49,7 +48,7 @@ public class MonitorHandler implements RequestHandler {
 
         // add a record to the monitored file
         long expiration = System.currentTimeMillis() + duration;
-        RegisteredClient clientInfo = new RegisteredClient(client, port, expiration);
+        RegisteredClient clientInfo = new RegisteredClient(client, clientPort, expiration);
 
         Set<RegisteredClient> registeredClients = this.monitoringInfo.get(monitoredPath);
         if (registeredClients == null) {

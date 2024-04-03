@@ -121,20 +121,20 @@ public class Util {
 
         try {
             switch (messageType) {
-                case '1': // read
+                case Constants.REQUEST_CODE_READ: // read
                     Collections.addAll(request, readString(buffer), readInt(buffer), readInt(buffer));
                     break;
-                case '2': // insert
+                case Constants.REQUEST_CODE_INSERT: // insert
                     Collections.addAll(request, readString(buffer), readInt(buffer), readString(buffer));
                     break;
-                case '3': // monitor
-                    Collections.addAll(request, readString(buffer), readLong(buffer), readInt(buffer));
+                case Constants.REQUEST_CODE_MONITOR: // monitor
+                    Collections.addAll(request, readString(buffer), readLong(buffer));
                     break;
-                case '4': // get delete
-                case '6': // get modificationTime
+                case Constants.REQUEST_CODE_DELETE: // get delete
+                case Constants.REQUEST_CODE_GET_LAST_MODIFICATION_TIME: // get modificationTime
                     Collections.addAll(request, readString(buffer));
                     break;
-                case '5': // duplicate
+                case Constants.REQUEST_CODE_DUPLICATE: // duplicate
                     Collections.addAll(request, readString(buffer), readString(buffer));
                     break;
                 default:

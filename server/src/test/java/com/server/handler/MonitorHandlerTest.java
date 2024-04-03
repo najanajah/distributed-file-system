@@ -5,7 +5,6 @@ import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
 import com.server.model.InvocationSemantics;
-import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ class MonitorHandlerTest {
         Thread.sleep(2000);
         //Create the test file
         file = Paths.get(filePath).toFile();
-        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (file.exists()) file.delete();
         file.createNewFile();
 
@@ -60,9 +59,9 @@ class MonitorHandlerTest {
     @Test
     public void insert() throws Exception {
         List<Object> p = new ArrayList<>();
-        char requestType = RequestCode.MONITOR.getValue();
+        char requestType = Constants.REQUEST_CODE_MONITOR;
         int requestId = 1;
-        char insertRequestType = RequestCode.INSERT.getValue();
+        char insertRequestType = Constants.REQUEST_CODE_INSERT;
         int insertRequestId = 2;
 
         p.add(filePath);

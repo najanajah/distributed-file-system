@@ -4,7 +4,6 @@ import com.server.Server;
 import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
-import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,7 @@ class ModificationTimeHandlerTest {
 
         // create the test file
         file = Paths.get(filePath).toFile();
-        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (file.exists()) file.delete();
         file.createNewFile();
 
@@ -53,7 +52,7 @@ class ModificationTimeHandlerTest {
     public void test() throws Exception {
 
         List<Object> p = new ArrayList<>();
-        char requestType = RequestCode.GETLASTMODIFICATIONTIME.getValue();
+        char requestType = Constants.REQUEST_CODE_GET_LAST_MODIFICATION_TIME;
         int requestId = 256;
         p.add(filePath);
 

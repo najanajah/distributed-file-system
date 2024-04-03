@@ -19,7 +19,7 @@ public class ReadHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(ReadHandler.class.getName());
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
 
         logger.trace("Entering ReadHandler");
 
@@ -42,8 +42,7 @@ public class ReadHandler implements RequestHandler {
             long fileLength = file.length();
 
             if (offset >= fileLength) {
-                String msg = "Offset " + offset + " exceeds file "
-                        + path + " length (" + fileLength + ").";
+                String msg = "Offset " + offset + " exceeds file " + path + " length (" + fileLength + ").";
                 logger.error(msg);
                 return Util.errorPacket(msg);
             }

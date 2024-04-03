@@ -5,7 +5,6 @@ import com.server.constant.Constants;
 import com.server.handler.*;
 import com.server.helper.Util;
 import com.server.model.RegisteredClient;
-import com.server.model.RequestCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -85,22 +84,30 @@ public class Server {
 
                 // route the request to specific request handlers based on the request code
                 List<Object> reply;
-                if (requestType == RequestCode.READ.getValue()) { // read
-                    reply = this.readHandler.handleRequest(request, clientAddr);
-                } else if (requestType == RequestCode.INSERT.getValue()) { // write
-                    reply = this.insertHandler.handleRequest(request, clientAddr);
-                } else if (requestType == RequestCode.MONITOR.getValue()) { // monitor
-                    reply = this.monitorHandler.handleRequest(request, clientAddr);
-                } else if (requestType == RequestCode.DELETE.getValue()) { // delete
-                    reply = this.deleteHandler.handleRequest(request, clientAddr);
-                } else if (requestType == RequestCode.DUPLICATE.getValue()) { // duplicate
-                    reply = this.duplicateHandler.handleRequest(request, clientAddr);
-                } else if (requestType == RequestCode.GETLASTMODIFICATIONTIME.getValue()) { // get last modification time
-                    reply = this.getLastModTimeHandler.handleRequest(request, clientAddr);
-                } else {
-                    String msg = "Unrecognized code " + requestType;
-                    logger.error(msg);
-                    reply = Util.errorPacket(msg);
+
+                switch (requestType) {
+                    case Constants.REQUEST_CODE_READ: // read
+                        reply = this.readHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    case Constants.REQUEST_CODE_INSERT: // insert
+                        reply = this.insertHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    case Constants.REQUEST_CODE_MONITOR: // monitor
+                        reply = this.monitorHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    case Constants.REQUEST_CODE_DELETE: // get delete
+                        reply = this.deleteHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    case Constants.REQUEST_CODE_DUPLICATE: // duplicate
+                        reply = this.duplicateHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    case Constants.REQUEST_CODE_GET_LAST_MODIFICATION_TIME: // get modificationTime
+                        reply = this.getLastModTimeHandler.handleRequest(request, clientAddr, clientPort);
+                        break;
+                    default:
+                        String msg = "Unrecognized code " + requestType;
+                        logger.error(msg);
+                        reply = Util.errorPacket(msg);
                 }
 
                 Util.sendPacket(clientAddr, clientPort, requestType, requestId, reply);
@@ -135,7 +142,7 @@ public class Server {
         } else if (this.semantics == AT_LEAST_ONCE.getValue()) {
             this.getLastModTimeHandler = modTimeHandler;
             this.readHandler = readHandler;
-            this.insertHandler = insertHandler;
+            this.insertHandler = new CallbackHandler(monitoringInfo, insertHandler);
             this.monitorHandler = monitorHandler;
             this.duplicateHandler = duplicateHandler;
             this.deleteHandler = deleteHandler;

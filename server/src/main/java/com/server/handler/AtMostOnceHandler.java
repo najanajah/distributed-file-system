@@ -23,7 +23,7 @@ public class AtMostOnceHandler implements RequestHandler {
     }
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         logger.entry();
 
         try {
@@ -46,7 +46,7 @@ public class AtMostOnceHandler implements RequestHandler {
         }
 
         // pass the request to next response handler
-        List<Object> nextResponse = this.nextRqHdler.handleRequest(request, client);
+        List<Object> nextResponse = this.nextRqHdler.handleRequest(request, client, clientPort);
 
         // update the cache using the client ip and timestamp
         this.responseCache.put(key, nextResponse);

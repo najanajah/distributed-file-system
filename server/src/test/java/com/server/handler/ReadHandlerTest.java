@@ -4,7 +4,6 @@ import com.server.Server;
 import com.server.constant.Constants;
 import com.server.helper.TestUtil;
 import com.server.helper.Util;
-import com.server.model.RequestCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ReadHandlerTest {
     private static Thread serverThread = null;
     private static File file = null;
-    private static final String filePath = "test/read.txt";
+    private static final String filePath = "read.txt";
     private final Integer offset = 0;
     private final Integer numBytes = 12;
     private static final int port = 8899;
@@ -40,7 +39,7 @@ public class ReadHandlerTest {
         Thread.sleep(2000);
         // create the test file
         file = Paths.get(filePath).toFile();
-        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+        if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (file.exists()) file.delete();
         file.createNewFile();
 
@@ -53,7 +52,7 @@ public class ReadHandlerTest {
     @Test
     public void test() throws Exception {
         List<Object> p = new ArrayList<>();
-        char requestType = RequestCode.READ.getValue();
+        char requestType = Constants.REQUEST_CODE_READ;
         int requestId = 256;
         p.add(filePath);
         p.add(offset);

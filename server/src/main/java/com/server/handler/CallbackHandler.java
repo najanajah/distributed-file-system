@@ -28,11 +28,11 @@ public class CallbackHandler implements RequestHandler {
     }
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         logger.entry();
 
         // pass the request to next request handlers in the chain
-        List<Object> nextReply = this.nextRqHdler.handleRequest(request, client);
+        List<Object> nextReply = this.nextRqHdler.handleRequest(request, client, clientPort);
 
         int code = (int) nextReply.get(0);
         if (code == 0) {
@@ -55,16 +55,13 @@ public class CallbackHandler implements RequestHandler {
         // then, construct the callback message with newly updated file contents
         Set<RegisteredClient> registeredClients = this.monitoringInfo.get(Paths.get(filePath));
         if (registeredClients != null) {
-            for (RegisteredClient clientInfo : registeredClients) {
-                InetAddress clientAddr = clientInfo.getClientAddr();
-                int clientPort = clientInfo.getClientPort();
-                long expiration = clientInfo.getExpiration();
-
-                System.out.println(System.currentTimeMillis() < expiration);
-                System.out.println(System.currentTimeMillis());
+            for (RegisteredClient registeredClientInfo : registeredClients) {
+                InetAddress registeredClientAddr = registeredClientInfo.getClientAddr();
+                int registeredClientPort = registeredClientInfo.getClientPort();
+                long expiration = registeredClientInfo.getExpiration();
 
                 if (System.currentTimeMillis() < expiration) {
-                    Util.sendPacket(clientAddr, clientPort, requestType, requestId, nextReply);
+                    Util.sendPacket(registeredClientAddr, registeredClientPort, requestType, requestId, nextReply);
                 }
             }
         }

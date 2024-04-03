@@ -19,7 +19,7 @@ public class ModificationTimeHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(ModificationTimeHandler.class.getName());
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         logger.entry();
 
         try {

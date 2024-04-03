@@ -19,7 +19,7 @@ public class DeleteHandler implements RequestHandler {
     static Logger logger = LogManager.getLogger(DuplicateHandler.class.getName());
 
     @Override
-    public List<Object> handleRequest(List<Object> request, InetAddress client) {
+    public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         // validate and retrieve parameters
         logger.trace("Entering DeleteHandler");
 
