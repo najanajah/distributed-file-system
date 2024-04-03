@@ -18,9 +18,6 @@ public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
     public static int lostReplyCount = 0;
     public static int replyDelaySec = 0;
-    private static final int MESSAGE_TYPE_SIZE = 1;
-    private static final int REQUEST_ID_SIZE = 4;
-
 
 
     /**
@@ -58,7 +55,6 @@ public class Util {
 
 
     public static String invalidPathMsg(String path) {
-        // TODO Auto-generated method stub
         return "Invalid Path " + path;
     }
 

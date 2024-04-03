@@ -105,9 +105,8 @@ public class InsertHandler implements RequestHandler {
             file.readFully(buffer); // Read the content after the offset
 
             file.seek(offset);
-            file.write(bytesToInsert); // Insert new bytes (converted from string)
-            file.write(buffer); // Write back the original content pushed forward
-
+            file.write(bytesToInsert);
+            file.write(buffer);
         } catch (FileNotFoundException e) {
             String msg = Util.nonExistFileMsg(path);
             logger.error(msg);
