@@ -1,4 +1,4 @@
-import Services.ServiceABC;
+import Services.Service;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,7 +32,7 @@ public class Main {
             }
         }
 
-        System.out.println("Welcome!");
+        System.out.println("Welcome to our DFS Client!");
     
         while (true) {
             System.out.println(Constants.SERVICE_PROMPT);
@@ -40,7 +40,7 @@ public class Main {
             if (input == Constants.EXIT_ID) {
                 break;
             }
-            ServiceABC requested_service = ServiceABC.generate_service(input, connection);
+            Service requested_service = Service.generate_service(input, connection);
             if (!(requested_service==null)) {
                 requested_service.act();
             }

@@ -10,7 +10,7 @@ import Exceptions.AppException;
 import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
-public class Duplicate extends ServiceABC{
+public class Duplicate extends Service{
 
     public Duplicate(Connection r) {
         super(r);
@@ -40,7 +40,7 @@ public class Duplicate extends ServiceABC{
             connection.cache.put(destination, new CacheEntry(destination, connection));
             System.out.println("Content:");
             System.out.println(reply.get("content"));
-            System.out.println("Done.");
+            System.out.println(Constants.END_OF_SERVICE);
 
         } 
         catch(BadPathException bpe) {

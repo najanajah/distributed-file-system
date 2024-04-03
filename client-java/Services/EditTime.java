@@ -8,7 +8,7 @@ import java.util.Map;
 import Driver.Connection;
 import Driver.Constants;
 
-public class EditTime extends ServiceABC {
+public class EditTime extends Service {
 
     public EditTime(Connection r) {
         super(r);
@@ -26,7 +26,7 @@ public class EditTime extends ServiceABC {
             Map<String, Object> reply = send_and_receive(request_values);
             System.out.println("Edit time:");
             System.out.println((int) reply.get("content"));
-            System.out.println("Done.");
+            System.out.println(Constants.END_OF_SERVICE);
         }
         catch(AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");

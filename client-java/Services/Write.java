@@ -11,7 +11,7 @@ import Exceptions.AppException;
 import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
-public class Write extends ServiceABC {
+public class Write extends Service {
 
     public Write(Connection r) {
         super(r);
@@ -54,7 +54,9 @@ public class Write extends ServiceABC {
             // update cache 
             cache_object.set_cache(0, updatedContent.length(), updatedContent.toString());
             
-            System.out.println("Content inserted for file " + pathname + "successfully at offset " + offset);
+            System.out.println("Content inserted for file " + pathname + "successfully at offset " + offset + " :");
+            System.out.println(content);
+            System.out.println(Constants.END_OF_SERVICE);
         } 
         catch(BadPathException bpe) {
             System.out.println("Error: " + bpe.getMessage() + ".");

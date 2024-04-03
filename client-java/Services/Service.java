@@ -15,12 +15,12 @@ import Driver.Util;
  * Abstract class for services that this application can perform for the client
  * Sub-classes: Read, Write, Monitor, Clear, Trim
  */
-public abstract class ServiceABC {
+public abstract class Service {
 
     public Connection connection;
     public int service_id;
 
-    public ServiceABC(Connection r) {
+    public Service(Connection r) {
         connection = r;
     }
 
@@ -46,7 +46,7 @@ public abstract class ServiceABC {
      * @param r connection info
      * @return the requested Service
      */
-    public static ServiceABC generate_service(int service_id, Connection r) {
+    public static Service generate_service(int service_id, Connection r) {
         if (service_id == Constants.READ_ID) {
             return new Read(r);
         }
@@ -65,15 +65,6 @@ public abstract class ServiceABC {
         else if (service_id == Constants.EDIT_TIME_ID) {
             return new EditTime(r);
         }
-        // else if (service_id == Constants.CREATE_FILE_ID) {
-        //     return new Create(r);
-        // }
-        // else if (service_id == Constants.REMOVE_FILE_ID) {
-        //     return new Remove(r);
-        // }
-        // else if (service_id == Constants.LIST_ID) {
-        //     return new ListDir(r);
-        // }
         else {
             return null;
         }

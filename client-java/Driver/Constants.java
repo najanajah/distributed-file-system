@@ -26,7 +26,21 @@ public class Constants {
     // Services
     public static final int EXIT_ID = 0;
     public static final String SERVICE_PROMPT =
-            "Please enter: \n 0 : exit\n 1 : read\n 2 : write\n 3 : monitor\n 4 : duplicate\n 5 : remove file\n 6 : edit time";
+    "+---------------+------------------+\n" +
+    "|   CODE          |   Service      |\n" +
+    "+---------------+------------------+\n" +
+    "|   0              |   exit        |\n" +
+    "|   1              |   read        |\n" +
+    "|   2              |   write       |\n" +
+    "|   3              |   monitor     |\n" +
+    "|   4              |   duplicate   |\n" +
+    "|   5              |   remove file |\n" +
+    "|   6              |   edit time   |\n" +
+    "+------------------+---------------+";
+    public static final String END_OF_SERVICE =
+    "+---------------+---------------+\n" +
+    "|   END OF SERVICE             |\n" +
+    "+---------------+---------------+";
     public static final int READ_ID = 1;
     public static final int WRITE_ID = 2;
     public static final int MONITOR_ID = 3;

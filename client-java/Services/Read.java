@@ -10,7 +10,7 @@ import Driver.CacheEntry;
 import Driver.Connection;
 import Driver.Constants;
 
-public class Read extends  ServiceABC {
+public class Read extends  Service {
 
     public Read(Connection r) {
         super(r);
@@ -47,9 +47,9 @@ public class Read extends  ServiceABC {
 
             // either way, get the content from the cache
             String content = cache_object.get_cache(offset, byte_count);
-            System.out.println("Content:");
+            System.out.println("Content Read From " + pathname + " :");
             System.out.println(content);
-            System.out.println("Done.");
+            System.out.println(Constants.END_OF_SERVICE);
         }
         catch(BadPathException bpe) {
             if (connection.cache.containsKey(pathname)) {

@@ -9,7 +9,7 @@ import Exceptions.AppException;
 import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
-public class Remove extends ServiceABC {
+public class Remove extends Service {
 
     public Remove(Connection r) {
         super(r);
@@ -28,9 +28,8 @@ public class Remove extends ServiceABC {
                 connection.cache.remove(pathname);
             }
 
-            System.out.println("Content:");
-            System.out.println(reply.get("content"));
-            System.out.println("Done.");
+            System.out.println(pathname + " successfully removed!")
+            System.out.println(Constants.END_OF_SERVICE);
         }
         catch(BadPathException bpe) {
             System.out.println("Error: " + bpe.getMessage() + ".");

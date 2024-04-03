@@ -12,7 +12,7 @@ import Driver.Connection;
 import Driver.Constants;
 import Driver.Util;
 
-public class Monitor extends ServiceABC {
+public class Monitor extends Service {
 
     public Monitor(Connection r) {
         super(r);
@@ -53,12 +53,15 @@ public class Monitor extends ServiceABC {
                         update_bytes = Util.receive_message(monitor_request_id, connection);
                         // we know that service id is not needed here
                         Map<String, Object> update = Util.un_marshall(-1, update_bytes);
-                        System.out.println("Update: " + update.get("content"));
+                        System.out.println("Update to file : " + request_values[0]);
+                        System.out.println(update.get("content"));
+                        System.out.println(Constants.END_OF_SERVICE);
                     }
                     catch (CorruptMessageException c) {
                         if (Constants.DEBUG) System.out.println("(log) Received corrupt message; Throwing away");
                     }
                 }
+                
             }
             catch (SocketTimeoutException t) {
                 System.out.println("Done receiving updates.");
