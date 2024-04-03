@@ -25,7 +25,7 @@ public class EditTime extends ServiceABC {
         try{
             Map<String, Object> reply = send_and_receive(request_values);
             System.out.println("Edit time:");
-            System.out.println((int) reply.get("time"));
+            System.out.println((int) reply.get("content"));
             System.out.println("Done.");
         }
         catch(AppException ae) {

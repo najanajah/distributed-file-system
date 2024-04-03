@@ -12,7 +12,7 @@ public class Constants {
     public static final int MAX_PACKET_SIZE = 1024;
     public static final int PACKET_HEADER_SIZE = 5;
     public static final int MAX_PACKET_CONTENT_SIZE = MAX_PACKET_SIZE - PACKET_HEADER_SIZE;
-    public static final int FILE_BLOCK_SIZE = 100;
+    public static final int FILE_BLOCK_SIZE = 1024;
 
     // Basic ID's
     public static final int INT_ID = 0;
@@ -32,12 +32,9 @@ public class Constants {
     public static final int MONITOR_ID = 3;
     public static final int DUPLICATE_FILE_ID = 4; 
     public static final int REMOVE_FILE_ID = 5;
-//     public static final int CLEAR_ID = -1;
-//     public static final int TRIM_ID = -2;
     public static final int EDIT_TIME_ID = 6;
     public static final int ACKNOWLEDGMENT_ID = 7;
-//     public static final int CREATE_FILE_ID = 8;
-    
+
     public static final int LIST_ID = 10;
 
     // Parameters for requests
@@ -47,26 +44,18 @@ public class Constants {
             List.of(new Pair<>("pathname", STRING_ID), new Pair<>("offset", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> MONITOR_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID), new Pair<>("monitor_time", LONG_ID));
-//     public static final List<Pair<String, Integer>> CLEAR_REQUEST_PARAMS =
-//             List.of(new Pair<>("pathname", STRING_ID)); 
     public static final List<Pair<String, Integer>> DUPLICATE_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID), new Pair<>("destination" , STRING_ID));
 
     public static final List<Pair<String, Integer>> REMOVE_FILE_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID));
 
-        //  remove
-//     public static final List<Pair<String, Integer>> TRIM_REQUEST_PARAMS =
-//             List.of(new Pair<>("pathname", STRING_ID));
+
     public static final List<Pair<String, Integer>> EDIT_TIME_REQUEST_PARAMS =
             List.of(new Pair<>("pathname", STRING_ID));
     public static final List<Pair<String, Integer>> ACKNOWLEDGE_PARAMS =
             List.of();
-//     public static final List<Pair<String, Integer>> CREATE_FILE_REQUEST_PARAMS =
-//             List.of(new Pair<>("pathname", STRING_ID));
-    
-//     public static final List<Pair<String, Integer>> LIST_REQUEST_PARAMS =
-//             List.of(new Pair<>("pathname", STRING_ID));
+
 
     public static final Map<Integer, List<Pair<String, Integer>>> REQUEST_PARAMS;
     static{
@@ -76,17 +65,13 @@ public class Constants {
                 MONITOR_ID, MONITOR_REQUEST_PARAMS,
                 DUPLICATE_FILE_ID, DUPLICATE_REQUEST_PARAMS,
                 REMOVE_FILE_ID, REMOVE_FILE_REQUEST_PARAMS,
-                // CLEAR_ID, CLEAR_REQUEST_PARAMS,
-                // TRIM_ID, TRIM_REQUEST_PARAMS,
                 EDIT_TIME_ID, EDIT_TIME_REQUEST_PARAMS,
                 ACKNOWLEDGMENT_ID, ACKNOWLEDGE_PARAMS
-                // CREATE_FILE_ID, CREATE_FILE_REQUEST_PARAMS,
-                // LIST_ID, LIST_REQUEST_PARAMS
+
         );
     }
 
-    // Parameters for successful services
-    //  Need to change?
+
     public static final int SUCCESSFUL_STATUS_ID = 1;
     public static final List<Pair<String, Integer>> READ_REPLY_PARAMS =
             List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
@@ -96,18 +81,13 @@ public class Constants {
             List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
     public static final List<Pair<String, Integer>> DUPLICATE_REPLY_PARAMS =
             List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));        
-//     public static final List<Pair<String, Integer>> CLEAR_REPLY_PARAMS =
-//             List.of();
-//     public static final List<Pair<String, Integer>> TRIM_REPLY_PARAMS =
-        //     List.of();
+
     public static final List<Pair<String, Integer>> EDIT_TIME_REPLY_PARAMS =
             List.of(new Pair<>("status", INT_ID), new Pair<>("time", INT_ID));
-//     public static final List<Pair<String, Integer>> CREATE_REPLY_PARAMS =
-//             List.of();
+
     public static final List<Pair<String, Integer>> REMOVE_REPLY_PARAMS =
            List.of(new Pair<>("status", INT_ID), new Pair<>("content", STRING_ID));
-//     public static final List<Pair<String, Integer>> LIST_REPLY_PARAMS =
-//             List.of(new Pair<>("repeat", INT_ID), new Pair<>("type", INT_ID), new Pair<>("name", STRING_ID));
+
 
     public static final Map<Integer, List<Pair<String, Integer>>> SUCCESSFUL_STATUS_PARAMS;
     static{

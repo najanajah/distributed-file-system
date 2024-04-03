@@ -49,9 +49,9 @@ public class Connection {
         freshness_interval = f_interval;
         at_most_once = amo == 1;
         network_failure_rate = nfr;
-        // Testing connection 
-        List<Byte> packet = new ArrayList<>();
-        packet.add((byte) 0);
+        // Testing connection by sending an empty datagram
+        // List<Byte> packet = new ArrayList<>();
+        // packet.add((byte) 0);
         // try {send_packet(packet);
         // // System.out.println("connection success");
         // }
@@ -60,7 +60,7 @@ public class Connection {
         // }
     }
 
-    /**Send one packet to the server
+    /**Send datagram to the server
      * Simulate packets being lost in transmission
      * @param packet_list packet to be sent
      * @throws IOException from sending packet
@@ -93,7 +93,7 @@ public class Connection {
         return data;
     }
 
-    /** acknowledge any lingering old replies (if we are using at most once semantics)
+    /** acknowledge any pending replies replies (if we are using at most once semantics)
      * @throws IOException from receiving packet
      */
     public void close() throws IOException {

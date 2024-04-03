@@ -10,14 +10,14 @@ import java.util.Map;
 
 
 /**
- * Holds information for storing read content in the cache
+ * Entry for each file in the Cache.
  */
 public class CacheEntry {
 
     private String pathname;
-    // the last time we checked in with the server
+    // the last time file was checked in with servr
     private long server_checkin_time;
-    // the last time the file was edited at the server that we are aware of
+    // the last time the file was edited at the server according to client
     private long last_known_edit_time;
 
     private HashMap<Integer, String> content;
@@ -25,7 +25,7 @@ public class CacheEntry {
 
     /** Set the pathname, server_checkin_time, and last_known_edit time
      * @param pn pathname
-     * @param connection connection info
+     * @param connection connection information
      * @throws IOException sending/receiving message
      * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
@@ -61,7 +61,7 @@ public class CacheEntry {
         return answer.toString();
     }
 
-    /** Set the cache with the content read by the server
+    /** Set the cache with new content read from server
      * Set entire blocks, not just the range requested
      * @param offset file offset
      * @param byte_count number of bytes read
@@ -78,9 +78,6 @@ public class CacheEntry {
         for (int i = start_block; i < end_block; i++) {
             int startIndex = i*Constants.FILE_BLOCK_SIZE;
             int endIndex = (i+1)*Constants.FILE_BLOCK_SIZE;
-            // if (endIndex > new_content.length()) {
-            //     endIndex = new_content.length(); // Adjust endIndex to avoid out of bounds
-            // }
             content.put(i,
                     new_content.substring(startIndex, endIndex));
         }
@@ -117,7 +114,7 @@ public class CacheEntry {
         return must;
     }
 
-    /** Whether the requested offset/byte_count combo already exist in the cache
+    /** checks whether the requested offset/byte_count combo already exist in the cache
      * @param offset file offset
      * @param byte_count number of bytes to read
      * @return whether it exists in the cache
@@ -147,10 +144,10 @@ public class CacheEntry {
                 " and we last checked the server at time " + server_checkin_time);
         if (Constants.DEBUG) {
             if (fresh) {
-                System.out.println("(log) -> fresh locally");
+                System.out.println("(log) -> cache is fresh locally");
             }
             else {
-                System.out.println("(log) -> not fresh locally");
+                System.out.println("(log) -> cache is not fresh locally");
             }
         }
         return fresh;
@@ -180,16 +177,16 @@ public class CacheEntry {
         }
     }
 
-    /** Get the time of the server's last update
-     * automatically update server_checkin_time
-     * @param connection connection info
-     * @return the time
+    /** 
+     * Retrieves files last updated time from server and updates.  
+     * @param connection connection information
+     * @return time in ms (Long)
      * @throws IOException send/receive messages
      * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
     private long get_server_edit_time(Connection connection) throws IOException, BadPathException, NullPointerException {
         server_checkin_time = System.currentTimeMillis();
-
+        // Request values for read function
         String[] request_values = {pathname};
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
@@ -225,17 +222,17 @@ public class CacheEntry {
         return (int) Math.floor((offset + byte_count) * 1.0 / Constants.FILE_BLOCK_SIZE);
     }
 
-    /** Check if the given offset/byte_count combo is certain to be out of range
+    /** 
+     * Checks if the offset and byte_count are out of range
      * @param offset file offset
      * @param byte_count number of bytes to read
      * @throws IllegalRangeException if the combo is indeed out of range
      */
     private void check_range(int offset, int byte_count) throws IllegalRangeException {
         int end_block = get_end_block(offset, byte_count);
-        if (offset < 0 ||
+        if (offset <= 0 ||
             byte_count < 0 ||
-            (final_block != -1 && final_block == end_block &&
-                (offset+byte_count) % Constants.FILE_BLOCK_SIZE > content.get(end_block).length()) ||
+            (final_block != -1 && final_block == end_block && (offset+byte_count) % Constants.FILE_BLOCK_SIZE > content.get(end_block).length()) ||
             (final_block != -1 && end_block > final_block))
         {
             throw new IllegalRangeException();
