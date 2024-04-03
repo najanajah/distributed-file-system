@@ -34,12 +34,12 @@ public class Server {
     public Server(){
         this(ServerConfig.PORT, AT_MOST_ONCE.getValue());
     }
-    private  RequestHandler modTimeHandler = null;
+//    private  RequestHandler modTimeHandler = null;
     private  RequestHandler readHandler = null;
     private  RequestHandler insertHandler = null;
     private  RequestHandler monitorHandler = null;
-    private  RequestHandler renameHandler = null;
-    private  RequestHandler appendHandler = null;
+//    private  RequestHandler renameHandler = null;
+//    private  RequestHandler appendHandler = null;
     private RequestHandler duplicateHandler = null;
     private RequestHandler deleteHandler = null;
 
@@ -103,20 +103,24 @@ public class Server {
 //                int code = (Integer)request.get("code");
                 char requestType = (char) request.get(0);
                 int requestId = (int) request.get(1);
+
+                System.out.println("requestType: " + requestType);
+                System.out.println("requestId: " + requestId);
 //////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////
                 //Route the request to specific request handlers based on the request code
                 List<Object> reply;
-                if(requestType == '1'){
+                if(requestType == '1'){ // read
                     reply = this.readHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '2'){
+                }else if(requestType == '2'){ // write
                     reply = this.insertHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '3'){
+                }else if(requestType == '3'){ // monitor
                     reply = this.monitorHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '4'){
+                }else if(requestType == '4'){ // delete
                     reply = this.deleteHandler.handleRequest((ArrayList<Object>) request, clientAddr);
-                }else if(requestType == '5'){
+                }else if(requestType == '5'){ // duplicate
+                    System.out.println("duplicate being called");
                     reply = this.duplicateHandler.handleRequest((ArrayList<Object>) request, clientAddr);
                 }else{
                     String msg = "Unrecognized code " + requestType;
@@ -142,27 +146,27 @@ public class Server {
      */
     private  void configureRequestHandler(){
         logger.entry();
-        List<Object> cachedReply = new ArrayList<>();
-//        Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
+        Map<String,List<Object>> cachedReply = new HashMap<>();
+        Map<Path,Set<RegisteredClient>> monitoringInfo = new HashMap<>();
 
 //        RequestHandler modTimeHandler = new ModificationTimeHandler();
         RequestHandler readHandler = new ReadHandler();
-//        RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
+        RequestHandler insertHandler = new UpdateHandler(monitoringInfo,new InsertHandler());
 //        RequestHandler appendHandler = new UpdateHandler(monitoringInfo,new AppendHandler());
 //        RequestHandler renameHandler = new RenameHandler();
-//        RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
+        RequestHandler monitorHandler = new MonitorHandler(monitoringInfo);
         RequestHandler duplicateHandler = new DuplicateHandler();
         RequestHandler deleteHandler = new DeleteHandler();
 
         if(this.semantics == AT_MOST_ONCE.getValue()){
 //            this.modTimeHandler = new AtMostOnceHandler(cachedReply, modTimeHandler);
             this.readHandler = new AtMostOnceHandler(cachedReply, readHandler);
-//            this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
-//            this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
+            this.insertHandler = new AtMostOnceHandler(cachedReply, insertHandler);
+            this.monitorHandler = new AtMostOnceHandler(cachedReply, monitorHandler);
 //            this.renameHandler = new AtMostOnceHandler(cachedReply, renameHandler);
 //            this.appendHandler = new AtMostOnceHandler(cachedReply, appendHandler);
             this.duplicateHandler = new AtMostOnceHandler(cachedReply, duplicateHandler);
-            this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
+//            this.deleteHandler = new AtMostOnceHandler(cachedReply, deleteHandler);
         }else if(this.semantics == AT_LEAST_ONCE.getValue()){
 //            this.modTimeHandler =  modTimeHandler;
             this.readHandler = readHandler;

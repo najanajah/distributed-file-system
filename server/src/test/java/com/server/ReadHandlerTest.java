@@ -36,6 +36,7 @@ public class ReadHandlerTest {
         Thread.sleep(2000);
         //Create the test file
         file = Paths.get(filePath).toFile();
+        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
         if(file.exists()) file.delete();
         file.createNewFile();
 
