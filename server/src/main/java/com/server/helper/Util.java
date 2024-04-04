@@ -1,5 +1,6 @@
 package com.server.helper;
 
+import com.server.config.ServerConfig;
 import com.server.constant.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,8 +19,8 @@ import java.util.List;
 
 public class Util {
     static Logger logger = LogManager.getLogger(Util.class.getName());
-    public static int lostReplyCount = 0;
-    public static int replyDelaySec = 0;
+    public static int lostReplyCount = ServerConfig.LOST_REPLY_COUNT;
+    public static int replyDelaySec = ServerConfig.REPLY_DELAY_SEC;
 
     // construct message response for successful operation
     public static List<Object> successPacket(String msg) {
@@ -142,10 +143,8 @@ public class Util {
                     break;
                 case Constants.REQUEST_CODE_DELETE: // get delete
                 case Constants.REQUEST_CODE_GET_LAST_MODIFICATION_TIME: // get modificationTime
-                    Collections.addAll(request, readString(buffer));
-                    break;
                 case Constants.REQUEST_CODE_DUPLICATE: // duplicate
-                    Collections.addAll(request, readString(buffer), readString(buffer));
+                    Collections.addAll(request, readString(buffer));
                     break;
                 default:
                     throw new IllegalArgumentException("Unrecognized message type: " + messageType);

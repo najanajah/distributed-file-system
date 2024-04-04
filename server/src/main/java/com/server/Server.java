@@ -36,8 +36,9 @@ public class Server {
         this(port, AT_MOST_ONCE.getValue());
     }
 
+    // default constructor
     public Server() {
-        this(ServerConfig.PORT, AT_MOST_ONCE.getValue());
+        this(ServerConfig.PORT, ServerConfig.INVOCATION_SEMANTICS);
     }
 
     private RequestHandler getLastModTimeHandler = null;

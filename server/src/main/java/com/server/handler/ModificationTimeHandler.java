@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -33,11 +34,10 @@ public class ModificationTimeHandler implements RequestHandler {
         String file = (String) request.get(2);
 
         // get last modification time
-        long modificationTime = 0L;
+        long modificationTime;
 
         try {
-            Path filePath = Paths.get(file);
-            File reqFile = filePath.toFile();
+            File reqFile = new File(file);
             if (!reqFile.exists()) {
                 String msg = Util.nonExistFileMsg(file);
                 logger.error(msg);

@@ -26,13 +26,15 @@ public class MonitorHandler implements RequestHandler {
     @Override
     public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
         logger.entry();
-        // retrieve and validate parameters
+
+        // validate parameters
         try {
             ListTypeChecker.check(request, Constants.MonitorServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }
 
+        // retrieve parameters
         char requestType = (char) request.get(0);
         int requestId = (Integer) request.get(1);
         String filePath = (String) request.get(2);
