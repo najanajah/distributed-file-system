@@ -11,12 +11,18 @@ import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
 public class Duplicate extends Service{
-
+    /**
+     * initialize Duplicate Object 
+     * @param r 
+     */
     public Duplicate(Connection r) {
         super(r);
         service_id = Constants.DUPLICATE_FILE_ID;
     }
-
+    /** 
+     * Implements Duplicate with caching
+     * @throws IOException
+     */
     @Override
     public void act() throws IOException {
         String[] request_values = get_user_request_values();

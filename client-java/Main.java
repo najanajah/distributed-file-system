@@ -10,7 +10,6 @@ import Driver.Constants;
 
 public class Main {
 
-    // args: [ip address, port number, at most once, network failure rate, freshness interval]
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
         Connection connection;
@@ -23,10 +22,10 @@ public class Main {
                 break;
             }
             catch(ArrayIndexOutOfBoundsException e) {
-                System.out.println("Commandline arguments are incorrect please provide the following : ");
-                System.out.println("{IP Address} {Port Number} " +
-                        "{1 for at most once, 0 for at least once} " +
-                        "{Network Failure Rate} {Freshness Interval(ms)}");
+                System.out.println("Commandline arguments are not correct. Must be of the format   : ");
+                System.out.println("{IP address} {Port number} " +
+                        "{1 for at-most-once, 0 for at-least-once} " +
+                        "{network-failure-rate} {freshness-interval(ms)}");
                 initial_input = scanner.nextLine().split(" ");
                 System.out.println("");
             }

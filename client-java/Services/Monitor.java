@@ -13,12 +13,18 @@ import Driver.Constants;
 import Driver.Util;
 
 public class Monitor extends Service {
-
+     /**
+     * Initalizes the Montior obj
+     * @param r Connection 
+     */
     public Monitor(Connection r) {
         super(r);
         service_id = Constants.MONITOR_ID;
     }
-
+     /**
+     * Implements Monitor service with caching 
+     * @throws IOException
+     */
     @Override
     public void act() throws IOException {
 

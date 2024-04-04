@@ -12,13 +12,16 @@ import Driver.Connection;
 import Driver.Constants;
 
 public class EditTime extends Service {
-
+    /** 
+     * Initializes EditTime Object
+     * @param r 
+     */
     public EditTime(Connection r) {
         super(r);
         service_id = Constants.EDIT_TIME_ID;
     }
 
-    /** Perform the service
+    /** implements the Get Last Edit Time service with caching 
      * @throws IOException send/receive message
      */
     @Override
