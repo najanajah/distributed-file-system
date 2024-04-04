@@ -37,7 +37,7 @@ class ModificationTimeHandlerTest {
         Thread.sleep(2000);
 
         // create the test file
-        file = Paths.get(filePath).toFile();
+        file = new File(filePath);
         if (file.getParentFile() != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (file.exists()) file.delete();
         file.createNewFile();

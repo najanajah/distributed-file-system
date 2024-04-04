@@ -7,6 +7,7 @@ import com.server.helper.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -34,6 +35,15 @@ public class InsertHandler implements RequestHandler {
         String path = (String) request.get(2);
         Integer offset = (Integer) request.get(3);
         String insertedContent = (String) request.get(4);
+
+        File reqFile = new File(path);
+
+        // check if the source file exists
+        if (!reqFile.exists()) {
+            String msg = Util.nonExistFileMsg(path);
+            logger.error(msg);
+            return Util.errorPacket(msg);
+        }
 
         // perform the insertion
         String updatedContentAsString = null;

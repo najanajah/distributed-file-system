@@ -18,15 +18,16 @@ public class DuplicateHandler implements RequestHandler {
 
     @Override
     public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
-        // validate and retrieve parameters
         logger.entry();
 
+        // validate parameters
         try {
             ListTypeChecker.check(request, Constants.DuplicateServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
             return Util.errorPacket(e.getMessage());
         }
 
+        // retrieve parameters
         char requestType = (char) request.get(0);
         int requestId = (Integer) request.get(1);
         String sourcePath = (String) request.get(2);
@@ -36,15 +37,17 @@ public class DuplicateHandler implements RequestHandler {
 
         // perform the duplication
         try {
-            File sourceFile = Paths.get(sourcePath).toFile();
+            File sourceFile = new File(sourcePath);
 
+            // check if the source file exists
             if (!sourceFile.exists()) {
                 String msg = Util.nonExistFileMsg(sourcePath);
                 logger.error(msg);
                 return Util.errorPacket(msg);
             }
 
-            File destinationFile = Paths.get(destinationPath).toFile();
+            // check if the destination path is already taken
+            File destinationFile = new File(destinationPath);
             if (destinationFile.exists()) {
                 String msg = "Renamed file " + destinationFile + " already exists";
                 logger.error(msg);
@@ -55,12 +58,16 @@ public class DuplicateHandler implements RequestHandler {
             content = fileScanner.useDelimiter("\\Z").next();
             fileScanner.close();
 
+            // create the parent folder for destination file if doesn't exist
+            if (destinationFile.getParentFile() != null && !destinationFile.getParentFile().exists()) {
+                destinationFile.getParentFile().mkdirs();
+            }
 
             BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFile));
             bw.write(content);
             bw.close();
         } catch (FileNotFoundException e) {
-            String msg = Util.nonExistFileMsg(sourcePath);
+            String msg = Util.nonExistFileMsg(e.getMessage());
             logger.error(msg);
             return Util.errorPacket(msg);
         } catch (IOException e) {

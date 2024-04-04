@@ -29,7 +29,7 @@ class DuplicateHandlerTest {
     private static File sourceFile = null;
 
     private static final String sourcePath = "test/source.txt";
-    private static final String destinationPath = "test/destination.txt";
+    private static final String destinationPath = "file/destination.txt";
 
     private static final int port = 8872;
     private static final String contents = "Test File Duplication";
@@ -42,7 +42,7 @@ class DuplicateHandlerTest {
         Thread.sleep(2000);
 
         // create the test file
-        sourceFile = Paths.get(sourcePath).toFile();
+        sourceFile = new File(sourcePath);
 
         if (sourceFile.getParentFile() != null && !sourceFile.getParentFile().exists()) sourceFile.getParentFile().mkdirs();
 
@@ -54,7 +54,7 @@ class DuplicateHandlerTest {
         bw.write(contents);
         bw.close();
 
-        destinationFile = Paths.get(destinationPath).toFile();
+        destinationFile = new File(destinationPath);
         destinationFile.delete();
     }
 
@@ -90,8 +90,8 @@ class DuplicateHandlerTest {
         assertEquals(1, (int) response.get(2));
         assertNotNull(response.get(3));
 
-        File sourceFile = Paths.get(sourcePath).toFile();
-        File destinationFile = Paths.get(destinationPath).toFile();
+        File sourceFile = new File(sourcePath);
+        File destinationFile = new File(destinationPath);
         assertTrue(sourceFile.exists());
         assertTrue(destinationFile.exists());
 
