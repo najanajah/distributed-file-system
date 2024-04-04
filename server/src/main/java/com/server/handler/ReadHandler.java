@@ -23,6 +23,7 @@ public class ReadHandler implements RequestHandler {
 
         logger.trace("Entering ReadHandler");
 
+        // validate and retrieve parameters
         try {
             ListTypeChecker.check(request, Constants.ReadServiceExpectedRequestFormat);
         } catch (ListTypeMismatchException e) {
@@ -40,7 +41,6 @@ public class ReadHandler implements RequestHandler {
         try (RandomAccessFile file = new RandomAccessFile(path, "r")) {
             // check if the offset exceeds the file length
             long fileLength = file.length();
-
             if (offset >= fileLength) {
                 String msg = "Offset " + offset + " exceeds file " + path + " length (" + fileLength + ").";
                 logger.error(msg);
@@ -54,7 +54,7 @@ public class ReadHandler implements RequestHandler {
             byte[] bytes = new byte[numBytes];
             int bytesRead = file.read(bytes, 0, numBytes);
 
-            // convert bytes to string, assuming UTF-8 encoding
+            // convert bytes to string with UTF-8 encoding
             readContent = new String(bytes, 0, bytesRead);
         } catch (InvalidPathException e) {
             String msg = Util.invalidPathMsg(path);

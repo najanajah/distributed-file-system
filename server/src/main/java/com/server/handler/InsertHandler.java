@@ -20,7 +20,7 @@ public class InsertHandler implements RequestHandler {
     @Override
     public List<Object> handleRequest(List<Object> request, InetAddress client, int clientPort) {
 
-        //Validate and retrieve parameters
+        // validate and retrieve parameters
         logger.trace("Entering InsertHandler");
 
         try {
@@ -46,17 +46,17 @@ public class InsertHandler implements RequestHandler {
                 return Util.errorPacket(msg);
             }
 
-            // convert the string to bytes using UTF-8 or any appropriate charset
+            // convert the string to bytes using UTF-8
             byte[] bytesToInsert = insertedContent.getBytes(StandardCharsets.UTF_8);
 
             byte[] buffer = new byte[(int) (fileLength - offset)];
             file.seek(offset);
-            file.readFully(buffer); // read the content after the offset
-
+            file.readFully(buffer);
             file.seek(offset);
             file.write(bytesToInsert);
             file.write(buffer);
 
+            // get the file content after insertion
             byte[] updatedContent = new byte[(int) file.length()];
             file.seek(0);
             file.readFully(updatedContent);
