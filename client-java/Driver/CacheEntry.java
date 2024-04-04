@@ -83,23 +83,8 @@ public class CacheEntry {
         return must;
     }
 
-    /** checks whether the requested offset/byte_count combo already exist in the cache
-     * @param offset file offset
-     * @param byte_count number of bytes to read
-     * @return whether it exists in the cache
-     * @throws IllegalRangeException if the given offset/byte_count combo is certain to be out of range
-    //  */
-    // private boolean isCached(int offset, int byte_count) {
-    //     try {
-    //         is_required_range_cached(offset, byte_count);
-    //     } catch (IllegalRangeException e) {
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
     /** Whether the freshness interval has expired or not
-     * @return expired?
+     * @return isExpired
      */
     private boolean local_fresh(int freshness_interval) {
         long current_time = System.currentTimeMillis();
@@ -120,7 +105,7 @@ public class CacheEntry {
     /** Whether the last update time at the server matches our last known edit time
      * If it doesn't match, then we must clear the cache (as it is now out of date)
      * @param connection connection info
-     * @return match?
+     * @return isMatch
      * @throws IOException send/receive messages
      * @throws BadPathException if requesting the edit time at the server yields bad pathname
      */
@@ -149,15 +134,13 @@ public class CacheEntry {
      */
     private long get_server_edit_time(Connection connection) throws IOException, BadPathException, NullPointerException {
         server_checkin_time = System.currentTimeMillis();
-        // Request values for read function
+        // request values for read function
         String[] request_values = {pathname};
         if (pathname==null){
             throw new BadPathException();
         }
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
-            // System.out.println(reply.keySet());
-            // System.out.println(reply.values());
             System.out.println(Constants.REPLY_SEPERATOR);
 
             // if request was successful
@@ -182,8 +165,6 @@ public class CacheEntry {
             return -1;
         }
         catch (NullPointerException n){
-            // System.out.println("unexpected error: " + n.getMessage());
-            // return ;
             throw new NullPointerException();
         }
     }
