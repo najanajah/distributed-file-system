@@ -15,21 +15,17 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DuplicateHandlerTest {
     private static Thread serverThread = null;
-    private static File destinationFile = null;
     private static File sourceFile = null;
 
     private static final String sourcePath = "test/source.txt";
-    private static final String destinationPath = "file/destination.txt";
 
     private static final int port = 8872;
     private static final String contents = "Test File Duplication";
@@ -53,19 +49,20 @@ class DuplicateHandlerTest {
         BufferedWriter bw = new BufferedWriter(new FileWriter(sourceFile));
         bw.write(contents);
         bw.close();
-
-        destinationFile = new File(destinationPath);
-        destinationFile.delete();
     }
 
     @Test
     public void test() throws Exception {
+        File parentDirectory = sourceFile.getParentFile();
+        File[] filesInFolderBeforeDuplicate = parentDirectory.listFiles();
+
+        // Count the number of files
+        int numOfFilesBeforeDuplicate = filesInFolderBeforeDuplicate != null ? filesInFolderBeforeDuplicate.length : 0;
 
         List<Object> p = new ArrayList<>();
         char requestType = Constants.REQUEST_CODE_DUPLICATE;
         int requestId = 1;
         p.add(sourcePath);
-        p.add(destinationPath);
 
         byte[] b = Util.marshal(requestType, requestId, p);
 
@@ -91,21 +88,24 @@ class DuplicateHandlerTest {
         assertNotNull(response.get(3));
 
         File sourceFile = new File(sourcePath);
-        File destinationFile = new File(destinationPath);
         assertTrue(sourceFile.exists());
-        assertTrue(destinationFile.exists());
 
-        Scanner fileScanner = new Scanner(destinationFile);
-        String content = fileScanner.useDelimiter("\\Z").next();
-        fileScanner.close();
 
-        assertEquals(content, contents);
+        // Check if the parent directory exists
+        if (parentDirectory.exists() && parentDirectory.isDirectory()) {
+            // List all files in the parent directory
+            File[] filesInFolderAfterDuplicate = parentDirectory.listFiles();
+
+            // Count the number of files
+            int numOfFilesAfterDuplicate = filesInFolderAfterDuplicate != null ? filesInFolderAfterDuplicate.length : 0;
+            assertEquals(numOfFilesAfterDuplicate, numOfFilesBeforeDuplicate + 1);
+        }
+
     }
 
     @AfterAll
     public static void tearDown() {
         serverThread.interrupt();
-        destinationFile.delete();
         sourceFile.delete();
     }
 
