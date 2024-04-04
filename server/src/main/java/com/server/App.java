@@ -23,13 +23,14 @@ import org.apache.logging.log4j.Logger;
  * ```
  * java -jar DistributedFileSystemServer-1.0-SNAPSHOT.jar 2222 2 5 10
  * ```
- * Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. And each reply will first delay 10 seconds before transmission. This feature is to simulate incomplete interaction scenario. *
+ * Server will listen to port 8800 and choose AT_LEAST_ONCE semantics as default. The first 5 replies will be lost. And each reply will first delay 10 seconds before transmission. This feature is to simulate incomplete interaction scenario.
  */
 public class App {
     static Logger logger = LogManager.getLogger(App.class.getName());
 
     public static void main(String[] args) {
         logger.entry();
+        // parse arguments
         if (args.length == 0) {
             new Server().start();
         } else if (args.length == 1) {
@@ -53,7 +54,6 @@ public class App {
             int replyDelaySec = Integer.parseInt(args[3]);
             Util.replyDelaySec = replyDelaySec;
             new Server(port, semantics).start();
-
         }
         logger.exit();
     }
