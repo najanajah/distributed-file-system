@@ -36,41 +36,51 @@ public class Monitor extends Service {
         }
 
         try {
-            send_and_receive(request_values);
-            byte[] update_bytes;
-            connection.socket.setSoTimeout(monitor_period);
-            // hacky way of waiting for a certain period for updates from server
-            System.out.println("Start receiving updates: ");
-            try {
-                while(true) {
-                    long current_time = System.currentTimeMillis();
-                    if (current_time - monitor_start >= monitor_period) {
-                        throw new SocketTimeoutException();
-                    }
-                    connection.socket.setSoTimeout((int) (monitor_period - (current_time - monitor_start)));
-                    try {
-                        // updates must have same request id as the original monitor request
-                        update_bytes = Util.receive_message(monitor_request_id, connection);
-                        // we know that service id is not needed here
-                        Map<String, Object> update = Util.un_marshall(-1, update_bytes);
-                        System.out.println("Update to file : " + request_values[0]);
-                        System.out.println(update.get("content"));
-                        System.out.println(Constants.END_OF_SERVICE);
-                    }
-                    catch (CorruptMessageException c) {
-                        if (Constants.DEBUG) System.out.println("(log) Received corrupt message; Throwing away");
+            Map<String, Object> reply = send_and_receive(request_values);
+            System.out.println(Constants.REPLY_SEPERATOR);
+
+            // if request was successful
+            if ((int) reply.get("status_code")==Constants.SUCCESSFUL_STATUS_ID) {
+                System.out.println(Constants.REQUEST_SUCCESSFUL_MSG);
+                System.out.println(reply.get("content"));
+
+                byte[] update_bytes;
+                connection.socket.setSoTimeout(monitor_period);
+                // hacky way of waiting for a certain period for updates from server
+                System.out.println("Start receiving updates: ");
+                try {
+                    while(true) {
+                        long current_time = System.currentTimeMillis();
+                        if (current_time - monitor_start >= monitor_period) {
+                            throw new SocketTimeoutException();
+                        }
+                        connection.socket.setSoTimeout((int) (monitor_period - (current_time - monitor_start)));
+                        try {
+                            // updates must have same request id as the original monitor request
+                            update_bytes = Util.receive_message(monitor_request_id, connection);
+                            // we know that service id is not needed here
+                            Map<String, Object> update = Util.un_marshall(-1, update_bytes);
+                            System.out.println("Update to file : " + request_values[0]);
+                            System.out.println("Updated content : " + update.get("content"));
+                        }
+                        catch (CorruptMessageException c) {
+                            if (Constants.DEBUG) System.out.println("(log) Received corrupt message; Throwing away");
+                        }
                     }
                 }
-                
-            }
-            catch (SocketTimeoutException t) {
-                System.out.println("Done receiving updates.");
-            }
+                catch (SocketTimeoutException t) {
+                    System.out.println("Done receiving updates.");
+                }
+        } else {
+            System.out.println(Constants.REQUEST_FAILED_MSG);
+            System.out.println(reply.get("error_message"));
+        }
         }
         catch (AppException ae) {
             System.out.println("Error: " + ae.getMessage() + ".");
         }
-
+        System.out.println(Constants.REPLY_SEPERATOR);
+        System.out.println(Constants.END_OF_SERVICE);
     }
 
 }

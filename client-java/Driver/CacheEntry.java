@@ -20,8 +20,7 @@ public class CacheEntry {
     // the last time the file was edited at the server according to client
     private long last_known_edit_time;
 
-    private HashMap<Integer, String> content;
-    private int final_block;
+    private String content;
 
     /** Set the pathname, server_checkin_time, and last_known_edit time
      * @param pn pathname
@@ -33,8 +32,6 @@ public class CacheEntry {
         pathname = pn;
         // also sets server_checkin_time
         last_known_edit_time = get_server_edit_time(connection);
-        content = new HashMap<>();
-        final_block = -1;
     }
 
     /** Grab the requested string from the cache, assuming the necessary blocks exist
@@ -44,21 +41,8 @@ public class CacheEntry {
      * @throws IllegalRangeException see check_range method (bottom)
      */
     public String get_cache(int offset, int byte_count) throws IllegalRangeException {
-        check_range(offset, byte_count);
-        int start_block = get_start_block(offset);
-        int end_block = get_end_block(offset, byte_count);
-        int start_index = offset%Constants.FILE_BLOCK_SIZE;
-        int end_index = (offset+byte_count)%Constants.FILE_BLOCK_SIZE;
-        if (start_block == end_block) {
-            return content.get(start_block).substring(start_index, end_index);
-        }
-        StringBuilder answer = new StringBuilder();
-        answer.append(content.get(start_block).substring(start_index));
-        for (int i = start_block+1; i < end_block; i++) {
-            answer.append(content.get(i));
-        }
-        answer.append(content.get(end_block).substring(0,end_index));
-        return answer.toString();
+        is_range_valid(offset, byte_count);
+        return content.substring(offset, Math.min(byte_count + offset, content.length()));
     }
 
     /** Set the cache with new content read from server
@@ -72,21 +56,7 @@ public class CacheEntry {
         if(new_content==null){ 
             throw new BadPathException();
         }
-        check_range(offset, byte_count);
-        int start_block = get_start_block(offset);
-        int end_block = get_end_block(offset, byte_count);
-        for (int i = start_block; i < end_block; i++) {
-            int startIndex = i*Constants.FILE_BLOCK_SIZE;
-            int endIndex = (i+1)*Constants.FILE_BLOCK_SIZE;
-            content.put(i,
-                    new_content.substring(startIndex, endIndex));
-        }
-        String last_piece = new_content.substring(end_block*Constants.FILE_BLOCK_SIZE);
-        if (last_piece.length() != Constants.FILE_BLOCK_SIZE) {
-            if (Constants.DEBUG) System.out.println("(log) Final block set to " + end_block);
-            final_block = end_block;
-        }
-        content.put(end_block, last_piece);
+        content = new_content;
     }
 
     /** Whether we must read the content from the server
@@ -102,7 +72,7 @@ public class CacheEntry {
      * @throws IllegalRangeException if the given offset/byte_count combo is certain to be out of range
      */
     public boolean must_read_server(int offset, int byte_count, Connection connection) throws IOException, BadPathException, IllegalRangeException {
-        boolean must = !cached(offset, byte_count) || (!local_fresh(connection.freshness_interval) && !server_fresh(connection));
+        boolean must = !is_required_range_cached(offset, byte_count) || (!local_fresh(connection.freshness_interval) && !server_fresh(connection));
         if (Constants.DEBUG) {
             if (must) {
                 System.out.println ("(log) Must read from server");
@@ -119,20 +89,15 @@ public class CacheEntry {
      * @param byte_count number of bytes to read
      * @return whether it exists in the cache
      * @throws IllegalRangeException if the given offset/byte_count combo is certain to be out of range
-     */
-    private boolean cached(int offset, int byte_count) throws IllegalRangeException {
-        check_range(offset, byte_count);
-        int start_block = get_start_block(offset);
-        int end_block = get_end_block(offset, byte_count);
-        for (int i = start_block; i <= end_block; i++) {
-            if (!content.containsKey(i)) {
-                if (Constants.DEBUG) System.out.println("(log) Checking cache: NOT cached");
-                return false;
-            }
-        }
-        if (Constants.DEBUG) System.out.println("(log) Checking cache: cached");
-        return true;
-    }
+    //  */
+    // private boolean isCached(int offset, int byte_count) {
+    //     try {
+    //         is_required_range_cached(offset, byte_count);
+    //     } catch (IllegalRangeException e) {
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     /** Whether the freshness interval has expired or not
      * @return expired?
@@ -171,8 +136,7 @@ public class CacheEntry {
         else{
             if (Constants.DEBUG) System.out.println("(log) -> not fresh at server");
             last_known_edit_time = last_edit_time;
-            content = new HashMap<>();
-            final_block = -1;
+            content = null;
             return false;
         }
     }
@@ -188,16 +152,30 @@ public class CacheEntry {
         server_checkin_time = System.currentTimeMillis();
         // Request values for read function
         String[] request_values = {pathname};
+        if (pathname==null){
+            throw new BadPathException();
+        }
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
             System.out.println(reply.keySet());
             System.out.println(reply.values());
-            String contentString = (String) reply.get("content");
-            long time = Long.parseLong(contentString);
-            // changed from time to -> content generalise across replies 
-            return time ;
+            System.out.println(Constants.REPLY_SEPERATOR);
+
+            // if request was successful
+            if ((int) reply.get("status_code")==Constants.SUCCESSFUL_STATUS_ID) {
+                String contentString = (String) reply.get("content");
+                long time = Long.parseLong(contentString);
+                // changed from time to -> content generalise across replies 
+                return time;
+            } else {
+                // if the request was unsuccessful
+                System.out.println(Constants.REQUEST_FAILED_MSG);
+                System.out.println((String) reply.get("error_message"));
+                throw new BadPathException();
+            }
         }
         catch (BadPathException nsfe) {
+            System.out.println("File Path does not exists");
             throw new BadPathException();
         }
         catch (AppException ae) {
@@ -211,32 +189,18 @@ public class CacheEntry {
         }
     }
 
-    private int get_start_block(int offset) {
-        return (int) Math.floor(offset * 1.0 / Constants.FILE_BLOCK_SIZE);
-    }
-
-    private int get_end_block(int offset, int byte_count) {
-        if (byte_count == Integer.MAX_VALUE) {
-            return Integer.MAX_VALUE / Constants.FILE_BLOCK_SIZE;
-        }
-        return (int) Math.floor((offset + byte_count) * 1.0 / Constants.FILE_BLOCK_SIZE);
-    }
-
     /** 
      * Checks if the offset and byte_count are out of range
      * @param offset file offset
      * @param byte_count number of bytes to read
      * @throws IllegalRangeException if the combo is indeed out of range
      */
-    private void check_range(int offset, int byte_count) throws IllegalRangeException {
-        int end_block = get_end_block(offset, byte_count);
-        if (offset <= 0 ||
-            byte_count < 0 ||
-            (final_block != -1 && final_block == end_block && (offset+byte_count) % Constants.FILE_BLOCK_SIZE > content.get(end_block).length()) ||
-            (final_block != -1 && end_block > final_block))
-        {
-            throw new IllegalRangeException();
-        }
+    private boolean is_required_range_cached(int offset, int byte_count) {
+        return content != null && (offset + byte_count) <+ content.length();
+    }
+
+    public void is_range_valid(int offset, int byte_count) throws IllegalRangeException {
+        if (content == null || offset > content.length()) throw new IllegalRangeException();
     }
 }
 

@@ -94,11 +94,7 @@ public class Util {
      */
   
     public static byte[] receive_message(int request_id, Connection connection) throws IOException, CorruptMessageException {
-
-
-        System.out.println("Trying to receive packet"); 
         byte[] packet = connection.receive_packet();
-
         return packet;
     }
 

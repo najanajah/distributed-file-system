@@ -26,26 +26,32 @@ public class Constants {
     // Services
     public static final int EXIT_ID = 0;
     public static final String SERVICE_PROMPT =
-    "+---------------+------------------+\n" +
-    "|   CODE          |   Service      |\n" +
-    "+---------------+------------------+\n" +
-    "|   0              |   exit        |\n" +
-    "|   1              |   read        |\n" +
-    "|   2              |   write       |\n" +
-    "|   3              |   monitor     |\n" +
-    "|   4              |   duplicate   |\n" +
-    "|   5              |   remove file |\n" +
-    "|   6              |   edit time   |\n" +
-    "+------------------+---------------+";
+    "+---------+------------------------+\n" +
+    "|   CODE  |   Service              |\n" +
+    "+---------+------------------------+\n" +
+    "|   0     |   exit                 |\n" +
+    "|   1     |   read                 |\n" +
+    "|   2     |   insert               |\n" +
+    "|   3     |   monitor              |\n" +
+    "|   4     |   remove               |\n" +
+    "|   5     |   duplicate            |\n" +
+    "|   6     |   get last edit time   |\n" +
+    "+---------+------------------------+\n" +
+    "Please enter a service code: \n";
     public static final String END_OF_SERVICE =
     "+---------------+---------------+\n" +
     "|   END OF SERVICE             |\n" +
     "+---------------+---------------+";
+    public static final String REPLY_SEPERATOR =
+    "\n+---------------+---------------+\n";
+    public static final String REQUEST_SUCCESSFUL_MSG = "Request was Successful!\n";
+    public static final String REQUEST_FAILED_MSG = "Request was Failed!\n";
+
     public static final int READ_ID = 1;
     public static final int WRITE_ID = 2;
     public static final int MONITOR_ID = 3;
-    public static final int DUPLICATE_FILE_ID = 4; 
-    public static final int REMOVE_FILE_ID = 5;
+    public static final int DUPLICATE_FILE_ID = 5; 
+    public static final int REMOVE_FILE_ID = 4;
     public static final int EDIT_TIME_ID = 6;
     public static final int ACKNOWLEDGMENT_ID = 7;
 

@@ -27,35 +27,33 @@ public class Write extends Service {
         String content = request_values[2];
          
         try {
-            // place a new CacheObject if it didn't exist before
-            if (!connection.cache.containsKey(pathname)) {
-                connection.cache.put(pathname, new CacheEntry(pathname, connection));
+            if (offset < 0) {
+                throw new IllegalRangeException();
             }
             
-            
-            CacheEntry cache_object = connection.cache.get(pathname);
-            // Get freshness 
-            // Gets from server if cache is not fresh 
-            if (cache_object.must_read_server(offset, Constants.FILE_BLOCK_SIZE, connection)) {
-                // String byte_count = Integer.toString(Constants.FILE_BLOCK_SIZE);
-                // String[] read_request = {pathname, "0" , byte_count};
-                Map<String, Object> reply = send_and_receive(request_values);
-                // updates the cache with new file 
+            Map<String, Object> reply = send_and_receive(request_values);
+        
+            // if request was successful
+            if ((int) reply.get("status_code")==Constants.SUCCESSFUL_STATUS_ID) {
+                System.out.println(Constants.REQUEST_SUCCESSFUL_MSG);
+                // System.out.println(reply.get("content"));
                 String value = (String) reply.get("content");
-                cache_object.set_cache(offset, value.length(), value );
+                
+                connection.cache.put(pathname, new CacheEntry(pathname, connection));
+                CacheEntry cache_object = connection.cache.get(pathname);
+                cache_object.set_cache(offset, value.length(), value);
+                
+                System.out.println("Content inserted for file " + pathname + "successfully at offset " + offset + " :");
+                System.out.println(content);
+                System.out.println("Updated content: ");
+                System.out.println(value);
+            } else {
+                // if the request was unsuccessful
+                System.out.println(Constants.REQUEST_FAILED_MSG);
+                System.out.println(reply.get("error_message"));
             }
 
-            // gets updated file 
-            String currentContent = cache_object.get_cache(0, Integer.MAX_VALUE);
-
-            StringBuilder updatedContent = new StringBuilder(currentContent);
-            updatedContent.insert(offset, content);
-
-            // update cache 
-            cache_object.set_cache(0, updatedContent.length(), updatedContent.toString());
-            
-            System.out.println("Content inserted for file " + pathname + "successfully at offset " + offset + " :");
-            System.out.println(content);
+            System.out.println(Constants.REPLY_SEPERATOR);
             System.out.println(Constants.END_OF_SERVICE);
         } 
         catch(BadPathException bpe) {

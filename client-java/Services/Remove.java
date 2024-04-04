@@ -3,6 +3,8 @@ package Services;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.sound.midi.Soundbank;
+
 import Driver.Connection;
 import Driver.Constants;
 import Exceptions.AppException;
@@ -23,12 +25,25 @@ public class Remove extends Service {
         try{ 
             // Send directly to server since file must be deleted 
             Map<String, Object> reply = send_and_receive(request_values);
-            //  remove key if in cache 
-            if (connection.cache.containsKey(pathname)) {
-                connection.cache.remove(pathname);
+
+            System.out.println(Constants.REPLY_SEPERATOR);
+
+            // if request was successful
+            if ((int) reply.get("status_code")==Constants.SUCCESSFUL_STATUS_ID) {
+                System.out.println(Constants.REQUEST_SUCCESSFUL_MSG);
+
+                //  remove key if in cache 
+                if (connection.cache.containsKey(pathname)) {
+                    connection.cache.remove(pathname);
+                }
+
+                System.out.println(pathname + " successfully removed!");
+            } else {
+                System.out.println(Constants.REQUEST_FAILED_MSG);
+                System.out.println("Error: " + reply.get("error_message"));
             }
 
-            System.out.println(pathname + " successfully removed!")
+            System.out.println(Constants.REPLY_SEPERATOR);
             System.out.println(Constants.END_OF_SERVICE);
         }
         catch(BadPathException bpe) {

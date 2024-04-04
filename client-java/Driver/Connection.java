@@ -86,9 +86,9 @@ public class Connection {
         byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
         
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-        System.out.println("trying to receive packet");
+        System.out.println("(log) trying to receive packet");
         socket.receive(reply);
-        System.out.println("packet received");
+        System.out.println("(log) packet received");
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
         return data;
     }
