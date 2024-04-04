@@ -22,7 +22,7 @@ public class Duplicate extends Service{
         String[] request_values = get_user_request_values();
         String source = request_values[0];
         // Not needed 
-        String destination = request_values[1];
+        // String destination = request_values[1];
         try {
             //  Must send to server to duplicate the file 
             Map<String, Object> reply = send_and_receive(request_values);
@@ -40,10 +40,10 @@ public class Duplicate extends Service{
                     CacheEntry cache_object = connection.cache.get(source);
                     cache_object.set_cache(0,content.length(), content);
                 }
-                CacheEntry destination_cache_object = new CacheEntry(destination, connection);
-                destination_cache_object.set_cache(0, content.length(), content);
-                connection.cache.put(destination, destination_cache_object);
-                System.out.println("File: " + source + " has been successfully duplicated at " + destination + "\nwith content: " + content);
+                // CacheEntry destination_cache_object = new CacheEntry(destination, connection);
+                // destination_cache_object.set_cache(0, content.length(), content)
+                // connection.cache.put(destination, destination_cache_object);
+                System.out.println("File: " + source + " has been successfully duplicated");
             } else {
                 System.out.println(Constants.REQUEST_FAILED_MSG);
                 System.out.println("Error from server: " + reply.get("error_message"));
@@ -61,5 +61,8 @@ public class Duplicate extends Service{
         catch(AppException a){ 
             System.out.println("Error: " + a.getMessage() + ".");
         }
-    }
+
+    } 
+
+
 }

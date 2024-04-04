@@ -18,15 +18,15 @@ import java.util.*;
 public class Util {
 
     /** Sending and receiving a message for a specific service
-     * @param service_id the service to be performed
+     * @param service_id id of service to be performed 
      * @param values parameter values
-     * @param connection server connection info
-     * @return the reply from the server, in a Map
+     * @param connection Connection Object
+     * @return the reply as a Map with key-value pairs for each parsed content
      * @throws IOException from sending/receiving packet
      * @throws AppException BadPathnameException, BadRangeException, FilEmptyException
      */
     public static Map<String, Object> send_and_receive(int service_id, String[] values, Connection connection) throws IOException, AppException {
-        if (Constants.DEBUG) System.out.println("(log) Begin send/receive for service id " + service_id + "and req id " + connection.get_request_id());
+        if (Constants.DEBUG) System.out.println("[log] Begin send/receive for service id " + service_id + "and req id " + connection.get_request_id());
         connection.socket.setSoTimeout(Constants.TIMEOUT);
         byte[] reply_content;
         List<List<Byte>> request = Util.marshall(connection.get_request_id(), service_id, values);
@@ -37,11 +37,11 @@ public class Util {
                 break;
             }
             catch (SocketTimeoutException t) {
-                if (Constants.DEBUG) System.out.println("(log) Socket timeout; Resending message");
+                if (Constants.DEBUG) System.out.println("[log] Socket timeout; Resending message");
                 Util.send_message(request, connection);
             }
             catch (CorruptMessageException c) {
-                if (Constants.DEBUG) System.out.println("(log) Throwing away corrupt message");
+                if (Constants.DEBUG) System.out.println("[log] Throwing away corrupt message");
             }
         }
 
@@ -56,7 +56,7 @@ public class Util {
             //     List<List<Byte>> ack = Util.marshall(connection.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
             //     Util.send_message(ack, connection);
             // }
-            if (Constants.DEBUG) System.out.println("(log) Finished send/receive for service id " + service_id + ".");
+            if (Constants.DEBUG) System.out.println("[log] Finished send/receive for service id " + service_id + ".");
             connection.increment_request_id();
         }
 
@@ -70,7 +70,7 @@ public class Util {
      */
     public static List<List<Byte>> marshall(int request_id, int service_id, String[] values) {
         List<Pair<String, Integer>> params = Constants.get_request_params(service_id);
-        System.out.println("params" + params);
+        // System.out.println("params" + params);
         List<List<Byte>>  message = marshall_to_content(service_id, request_id, params, values);
         return message;
     }
@@ -83,13 +83,13 @@ public class Util {
         for (List<Byte> packet : message) {
             connection.send_packet(packet);
         }
-        if (Constants.DEBUG) System.out.println("(log) Message sent");
+        if (Constants.DEBUG) System.out.println("[log] Message sent");
     }
 
-    /**Receive an entire message (which could contain many packets)
+    /**Receive datagram 
      * @param check_request_id check received request ids against this one
      * @param connection server connection info
-     * @return the content portion of the message
+     * @return the content portion of the message as byte array byte[]
      * @throws IOException from socket receive
      */
   
@@ -99,19 +99,22 @@ public class Util {
     }
 
     /** Unmarshall the message received from server
+     * Header: 
+     *     1. service id (char)
+     *     2. req_id (int)
      * The message may indicate:
-     *    1. successful service performed
-     *    2. an error (ex. file doesn't exit)
-     *    3. a notification (ex. file updated)
+     *    1. status code 
+     *    2. length of data to be parsed (int)
+     *    3. content
      * @param service_id the service we expected to be performed
-     * @param raw_content message from server
-     * @return the message, as a map
+     * @param data message from server
+     * @return the message, as a map 
      * @throws AppException BadPathnameException, BadRangeException, FilEmptyException
      */
-    public static Map<String, Object> un_marshall(int service_id, byte[] raw_content) throws AppException {
+    public static Map<String, Object> un_marshall(int service_id, byte[] data) throws AppException {
     
         //  byte[] packet = Util.to_primitive(raw_content);
-         ByteBuffer buffer = ByteBuffer.wrap(raw_content);
+         ByteBuffer buffer = ByteBuffer.wrap(data);
          Map<String, Object> message = new HashMap<>();
 
          if (buffer.remaining() < 1 + Integer.BYTES) {
@@ -155,17 +158,24 @@ public class Util {
     }
 
     /** Convert List<Byte> to byte[]
-     * @param in List<Byte>
+     * @param ls List<Byte>
      * @return byte[]
      */
-    public static byte[] to_primitive(List<Byte> in) {
-        byte[] ret = new byte[in.size()];
+    public static byte[] to_primitive(List<Byte> ls) {
+        byte[] ret = new byte[ls.size()];
         for (int i = 0; i < ret.length; i++) {
-            ret[i] = in.get(i);
+            ret[i] = ls.get(i);
         }
         return ret;
     }
 
+    /** read string from Datagram buffer according to defined reply structure
+     * reply structure for string: 
+     *  1. length of data to be parsed 
+     *  2. data
+     * @param buffer ByteBuffer
+     * @return String
+     */
     public static String readString(ByteBuffer buffer) {
         try {
             int filePathLen = buffer.getInt();
@@ -182,13 +192,18 @@ public class Util {
         }
     }
 
-
-
+    /** marshalls the content to be sent to server based on the request design 
+     * @param service_id int
+     * @param request_id int
+     * @param params List<Pair<String, Integer>>
+     * @param values String[]
+     * @return String
+     */
     private static List<List<Byte>>  marshall_to_content(int service_id, int request_id,  List<Pair<String, Integer>> params, String[] values) {
         
-        List<Byte> raw_content = new ArrayList<>();
+        List<Byte> byte_content = new ArrayList<>();
         
-        System.out.println(service_id);
+        // System.out.println(service_id);
         char sid = sidToChar(service_id); 
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
@@ -206,11 +221,11 @@ public class Util {
                 // Indicate integer type and write the integer
                 // buffer.putInt((Integer) values[i]);
                 int parsed = Integer.parseInt(values[i]); 
-                System.out.println("Parsed integer " + parsed);
+                // System.out.println("Parsed integer " + parsed);
                 buffer.putInt(parsed);
             } else if (param_type == Constants.LONG_ID) { 
-                long parsed = Long.parseLong(values[i]); 
-                System.out.println("Parsed Long " + parsed);
+                long parsed = Long.parseLong(values[i]);
+                // System.out.println("Parsed Long " + parsed);
                 buffer.putLong(parsed);
             }
             else {
@@ -223,14 +238,19 @@ public class Util {
         
 
         while (buffer.hasRemaining()) {
-            raw_content.add(buffer.get());
+            byte_content.add(buffer.get());
         }
 
-        System.out.println("raw content" + raw_content);
+        
         List<List<Byte>> listOfLists = new ArrayList<>();
-        listOfLists.add(raw_content); // Add raw_content as the only element in the list
+        listOfLists.add(byte_content); 
         return listOfLists;
     }
+    /**
+     * Convert the interger service id to respective character to append to request
+     * @param sid int
+     * @return char 
+     */
     private static char sidToChar(int sid){ 
         switch (sid) {
             case 1:

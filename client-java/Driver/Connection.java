@@ -34,6 +34,7 @@ public class Connection {
     public double network_failure_rate;
 
     /**
+     * Connection driver class
      * @param s_name server name
      * @param s_port server port
      * @throws UnknownHostException
@@ -60,13 +61,13 @@ public class Connection {
         // }
     }
 
-    /**Send datagram to the server
+    /**Send datagram to the server through DatagramPacket 
      * Simulate packets being lost in transmission
-     * @param packet_list packet to be sent
+     * @param packet packet to be sent
      * @throws IOException from sending packet
      */
-    public void send_packet(List<Byte> packet_list) throws IOException{
-        byte[] packet = Util.to_primitive(packet_list);
+    public void send_packet(List<Byte> packet_ls) throws IOException{
+        byte[] packet = Util.to_primitive(packet_ls);
         DatagramPacket request = new DatagramPacket(packet,
                 packet.length, host, server_port);
         double random = Math.random();
@@ -86,39 +87,46 @@ public class Connection {
         byte[] buffer = new byte[Constants.MAX_PACKET_SIZE];
         
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-        System.out.println("(log) trying to receive packet");
+        System.out.println("[log] trying to receive packet");
         socket.receive(reply);
-        System.out.println("(log) packet received");
+        System.out.println("[log] packet received");
         byte[] data = Arrays.copyOf(reply.getData(), reply.getLength());
         return data;
     }
 
-    /** acknowledge any pending replies replies (if we are using at most once semantics)
-     * @throws IOException from receiving packet
+    /** 
+     * closes connection and throws away any pending packages
+     * @throws IOException 
+     *
      */
     public void close() throws IOException {
         if (at_most_once) {
             socket.setSoTimeout(Constants.TIMEOUT);
-            if (Constants.DEBUG) System.out.println("(log) Begin acknowledging old replies");
+            if (Constants.DEBUG) System.out.println("[log] Begin acknowledging old replies");
             while(true) {
                 try {
                     Util.receive_message(request_id, this);
                 }
                 catch (SocketTimeoutException t) {
-                    if (Constants.DEBUG) System.out.println("(log) Socket timeout; Done with cleanup");
+                    if (Constants.DEBUG) System.out.println("[log] Socket timeout; cleanup done ");
                     break;
                 }
                 catch (CorruptMessageException c) {
-                    if (Constants.DEBUG) System.out.println("(log) Throwing away corrupt message");
+                    if (Constants.DEBUG) System.out.println("[log] throw away corrupt message");
                 }
             }
         }
         socket.close();
     }
-
+    /**
+     * increment request ID whenever new request is made
+     */
     public void increment_request_id() {
         request_id ++;
     }
+    /**
+     * return request_id
+     */
     public int get_request_id() {
         return request_id;
     }

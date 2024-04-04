@@ -5,7 +5,6 @@ import Exceptions.IllegalRangeException;
 import Exceptions.BadPathException;
 import java.lang.NullPointerException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -15,7 +14,7 @@ import java.util.Map;
 public class CacheEntry {
 
     private String pathname;
-    // the last time file was checked in with servr
+    // the last time file was checked in with server
     private long server_checkin_time;
     // the last time the file was edited at the server according to client
     private long last_known_edit_time;
@@ -75,10 +74,10 @@ public class CacheEntry {
         boolean must = !is_required_range_cached(offset, byte_count) || (!local_fresh(connection.freshness_interval) && !server_fresh(connection));
         if (Constants.DEBUG) {
             if (must) {
-                System.out.println ("(log) Must read from server");
+                System.out.println ("[log] Must read from server");
             }
             else {
-                System.out.println ("(log) No need to read from server");
+                System.out.println ("[log] No need to read from server");
             }
         }
         return must;
@@ -105,14 +104,14 @@ public class CacheEntry {
     private boolean local_fresh(int freshness_interval) {
         long current_time = System.currentTimeMillis();
         boolean fresh =  current_time - server_checkin_time < freshness_interval;
-        if (Constants.DEBUG) System.out.println("(log) Checking freshness locally: it is currently " + current_time +
+        if (Constants.DEBUG) System.out.println("[log] Checking freshness locally: it is currently " + current_time +
                 " and we last checked the server at time " + server_checkin_time);
         if (Constants.DEBUG) {
             if (fresh) {
-                System.out.println("(log) -> cache is fresh locally");
+                System.out.println("[log] -> cache is fresh locally");
             }
             else {
-                System.out.println("(log) -> cache is not fresh locally");
+                System.out.println("[log] -> cache is not fresh locally");
             }
         }
         return fresh;
@@ -127,14 +126,14 @@ public class CacheEntry {
      */
     private boolean server_fresh(Connection connection) throws IOException, BadPathException {
         long last_edit_time = get_server_edit_time(connection);
-        if (Constants.DEBUG) System.out.println("(log) Checking server: our last known edit time is " + last_known_edit_time +
+        if (Constants.DEBUG) System.out.println("[log] Checking server: our last known edit time is " + last_known_edit_time +
                 " and the server's last edit time is " + last_edit_time);
         if (last_known_edit_time == last_edit_time) {
-            if (Constants.DEBUG) System.out.println("(log) -> fresh at server");
+            if (Constants.DEBUG) System.out.println("[log] -> fresh at server");
             return true;
         }
         else{
-            if (Constants.DEBUG) System.out.println("(log) -> not fresh at server");
+            if (Constants.DEBUG) System.out.println("[log] -> not fresh at server");
             last_known_edit_time = last_edit_time;
             content = null;
             return false;
@@ -157,8 +156,8 @@ public class CacheEntry {
         }
         try {
             Map<String, Object> reply = Util.send_and_receive(Constants.EDIT_TIME_ID, request_values, connection);
-            System.out.println(reply.keySet());
-            System.out.println(reply.values());
+            // System.out.println(reply.keySet());
+            // System.out.println(reply.values());
             System.out.println(Constants.REPLY_SEPERATOR);
 
             // if request was successful

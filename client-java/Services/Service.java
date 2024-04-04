@@ -13,7 +13,7 @@ import Driver.Util;
 
 /**
  * Abstract class for services that this application can perform for the client
- * Sub-classes: Read, Write, Monitor, Clear, Trim
+ * sub-classes: Read, Write, Monitor, Duplicate, Remove 
  */
 public abstract class Service {
 
@@ -95,8 +95,6 @@ public abstract class Service {
         }
         return ret;
     }
-
-
 
 
 }

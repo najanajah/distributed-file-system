@@ -49,8 +49,8 @@ public class Read extends  Service {
             // only read from the server if we must
             if (!isCached || cache_object.must_read_server(offset, byte_count, connection)) {
                 Map<String, Object> reply = send_and_receive(request_values);
-                System.out.println(reply.keySet());
-                System.out.println(reply.values());
+                // System.out.println(reply.keySet());
+                // System.out.println(reply.values());
 
                 // if request was successful
                 if ((int) reply.get("status_code")==Constants.SUCCESSFUL_STATUS_ID) {
