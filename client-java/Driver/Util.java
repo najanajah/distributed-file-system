@@ -50,12 +50,6 @@ public class Util {
             return reply;
         }
         finally {
-            // if (connection.at_most_once) {
-            //     // upon receiving, send acknowledgment
-            //     System.out.print("(acknowledgment) ");
-            //     List<List<Byte>> ack = Util.marshall(connection.get_request_id(), Constants.ACKNOWLEDGMENT_ID, new String[0]);
-            //     Util.send_message(ack, connection);
-            // }
             if (Constants.DEBUG) System.out.println("[log] Finished send/receive for service id " + service_id + ".");
             connection.increment_request_id();
         }
@@ -70,13 +64,13 @@ public class Util {
      */
     public static List<List<Byte>> marshall(int request_id, int service_id, String[] values) {
         List<Pair<String, Integer>> params = Constants.get_request_params(service_id);
-        // System.out.println("params" + params);
         List<List<Byte>>  message = marshall_to_content(service_id, request_id, params, values);
         return message;
     }
 
     /** Send an entire message (which can contain many packets) to the server
      * @param message message to be sent
+     * @param connection server connection info
      * @throws IOException from sending packet
      */
     public static void send_message(List<List<Byte>> message, Connection connection) throws IOException{
@@ -87,7 +81,7 @@ public class Util {
     }
 
     /**Receive datagram 
-     * @param check_request_id check received request ids against this one
+     * @param request_id check received request ids against this one
      * @param connection server connection info
      * @return the content portion of the message as byte array byte[]
      * @throws IOException from socket receive
@@ -112,8 +106,6 @@ public class Util {
      * @throws AppException BadPathnameException, BadRangeException, FilEmptyException
      */
     public static Map<String, Object> un_marshall(int service_id, byte[] data) throws AppException {
-    
-        //  byte[] packet = Util.to_primitive(raw_content);
          ByteBuffer buffer = ByteBuffer.wrap(data);
          Map<String, Object> message = new HashMap<>();
 
@@ -137,7 +129,7 @@ public class Util {
         try {
             int filePathLen = buffer.getInt();
             message.put("data_length" , filePathLen); 
-            // Check for negative length or length longer than remaining buffer
+            // check for negative length or length longer than remaining buffer
             if (filePathLen < 0 || filePathLen > buffer.remaining()) {
                 throw new IllegalArgumentException("Invalid string length: " + filePathLen);
             }
@@ -148,10 +140,9 @@ public class Util {
             message.put(key, content);
          
         }catch (BufferUnderflowException e) {
-            // This exception is thrown if there aren't enough bytes in the buffer
+            // this exception is thrown if there aren't enough bytes in the buffer
             throw new IllegalArgumentException("Not enough space in buffer for string", e);
         }
-
 
         return message;
 
@@ -169,7 +160,7 @@ public class Util {
         return ret;
     }
 
-    /** read string from Datagram buffer according to defined reply structure
+    /** read string from Datagram buffer according to defined the reply structure
      * reply structure for string: 
      *  1. length of data to be parsed 
      *  2. data
@@ -179,7 +170,7 @@ public class Util {
     public static String readString(ByteBuffer buffer) {
         try {
             int filePathLen = buffer.getInt();
-            // Check for negative length or length longer than remaining buffer
+            // check for negative length or length longer than remaining buffer
             if (filePathLen < 0 || filePathLen > buffer.remaining()) {
                 throw new IllegalArgumentException("Invalid string length: " + filePathLen);
             }
@@ -187,12 +178,12 @@ public class Util {
             buffer.get(filePathBytes);
             return new String(filePathBytes, StandardCharsets.UTF_8);
         } catch (BufferUnderflowException e) {
-            // This exception is thrown if there aren't enough bytes in the buffer
+            // this exception is thrown if there aren't enough bytes in the buffer
             throw new IllegalArgumentException("Not enough buffer space" + " for string", e);
         }
     }
 
-    /** marshalls the content to be sent to server based on the request design 
+    /** marshall the content to be sent to server based on the request design
      * @param service_id int
      * @param request_id int
      * @param params List<Pair<String, Integer>>
@@ -202,8 +193,7 @@ public class Util {
     private static List<List<Byte>>  marshall_to_content(int service_id, int request_id,  List<Pair<String, Integer>> params, String[] values) {
         
         List<Byte> byte_content = new ArrayList<>();
-        
-        // System.out.println(service_id);
+
         char sid = sidToChar(service_id); 
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
@@ -213,41 +203,36 @@ public class Util {
         for (int i = 0; i < params.size(); i++) {
             int param_type = params.get(i).getValue();
             if (param_type == Constants.STRING_ID) {
-                // Write string length followed by string bytes
+                // write string length followed by string bytes
                 byte[] stringBytes = ((String) values[i]).getBytes(StandardCharsets.UTF_8);
                 buffer.putInt(stringBytes.length);
                 buffer.put(stringBytes);
             } else if (param_type == Constants.INT_ID) {
-                // Indicate integer type and write the integer
-                // buffer.putInt((Integer) values[i]);
-                int parsed = Integer.parseInt(values[i]); 
-                // System.out.println("Parsed integer " + parsed);
+                // indicate integer type and write the integer
+                int parsed = Integer.parseInt(values[i]);
                 buffer.putInt(parsed);
             } else if (param_type == Constants.LONG_ID) { 
                 long parsed = Long.parseLong(values[i]);
-                // System.out.println("Parsed Long " + parsed);
                 buffer.putLong(parsed);
             }
             else {
-                // Handle other types or throw an exception
+                // handle other types or throw an exception
                 throw new IllegalArgumentException("Unsupported argument type: " );
             }
         }
 
         buffer.flip();
-        
 
         while (buffer.hasRemaining()) {
             byte_content.add(buffer.get());
         }
 
-        
         List<List<Byte>> listOfLists = new ArrayList<>();
         listOfLists.add(byte_content); 
         return listOfLists;
     }
     /**
-     * Convert the interger service id to respective character to append to request
+     * Convert the integer service id to respective character to append to request
      * @param sid int
      * @return char 
      */
@@ -256,7 +241,7 @@ public class Util {
             case 1:
                 return '1'; // read
             case 2:
-                return '2'; // write 
+                return '2'; // insert
             case 3:
                 return '3'; // monitor
             case 4:

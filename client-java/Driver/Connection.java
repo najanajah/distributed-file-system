@@ -35,8 +35,12 @@ public class Connection {
 
     /**
      * Connection driver class
+     * @param s scanner
      * @param s_name server name
      * @param s_port server port
+     * @param amo at-most-once ot at-least-once
+     * @param nfr network failure rate
+     * @param f_interval freshness interval
      * @throws UnknownHostException
      * @throws SocketException
      */
@@ -50,15 +54,6 @@ public class Connection {
         freshness_interval = f_interval;
         at_most_once = amo == 1;
         network_failure_rate = nfr;
-        // Testing connection by sending an empty datagram
-        // List<Byte> packet = new ArrayList<>();
-        // packet.add((byte) 0);
-        // try {send_packet(packet);
-        // // System.out.println("connection success");
-        // }
-        // catch( IOException e){ 
-        //     System.out.println("Error while testing connection e");
-        // }
     }
 
     /**Send datagram to the server through DatagramPacket 
