@@ -1,0 +1,4 @@
+*.class 
+remove.py 
+*.o 
+*.h.gch
