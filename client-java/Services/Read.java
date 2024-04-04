@@ -12,12 +12,19 @@ import Driver.Connection;
 import Driver.Constants;
 
 public class Read extends  Service {
+     /**
+     * Initalizes the Read obj
+     * @param r Connection 
+     */
 
     public Read(Connection r) {
         super(r);
         service_id = Constants.READ_ID;
     }
-
+    /** 
+     * Implements read service with caching
+     * @throws IOException
+     */
     @Override
     public void act() throws IOException {
 

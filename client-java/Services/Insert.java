@@ -11,13 +11,21 @@ import Exceptions.AppException;
 import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
-public class Write extends Service {
+public class Insert extends Service {
+    /**
+     * Initalizes the Write obj
+     * @param r Connection 
+     */
 
-    public Write(Connection r) {
+    public Insert(Connection r) {
         super(r);
         service_id = Constants.WRITE_ID;
     }
 
+    /**
+     * Implements Write service with Caching
+     * @throws IOException
+     */
     @Override
     public void act() throws IOException {
         String[] request_values = get_user_request_values();

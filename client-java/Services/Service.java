@@ -41,17 +41,18 @@ public abstract class Service {
         }
     }
 
-    /** Generating for services
+    /** 
+     * Generating for obj services
      * @param service_id the service requested
-     * @param r connection info
-     * @return the requested Service
+     * @param r connection information
+     * @return  requested Service
      */
     public static Service generate_service(int service_id, Connection r) {
         if (service_id == Constants.READ_ID) {
             return new Read(r);
         }
         else if (service_id == Constants.WRITE_ID) {
-            return new Write(r);
+            return new Insert(r);
         }
         else if (service_id == Constants.MONITOR_ID) {
             return new Monitor(r);
@@ -81,7 +82,8 @@ public abstract class Service {
         return Util.send_and_receive(service_id, values, connection);
     }
 
-    /** Gets values required to perform Service from user
+    /** 
+     * Gets values iputs to perform the services 
      * @return the values
      */
     public String[] get_user_request_values() {

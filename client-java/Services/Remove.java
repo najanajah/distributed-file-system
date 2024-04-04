@@ -12,11 +12,19 @@ import Exceptions.BadPathException;
 import Exceptions.IllegalRangeException;
 
 public class Remove extends Service {
+     /**
+     * Initalizes the Remove obj
+     * @param r Connection 
+     */
 
     public Remove(Connection r) {
         super(r);
         service_id = Constants.REMOVE_FILE_ID;
     }
+    /* 
+     * Implements Remove service with Caching 
+     * @throws IOException
+     */
     @Override
     public void act() throws IOException {
         String[] request_values = get_user_request_values();
